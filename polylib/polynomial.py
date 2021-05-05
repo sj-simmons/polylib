@@ -148,7 +148,7 @@ class Polynomial:
            post: return the sum of self and other as polynomials.
         """
         if isinstance(other, Number):
-            return self._add(Polynomial((other,)))
+            return self._add(self.__class__((other,)))
         elif isinstance(other, Polynomial):
             return self._add(other)
         else:
@@ -159,7 +159,7 @@ class Polynomial:
 
         """
         if isinstance(other, Number):
-            return self._add(Polynomial([other]))
+            return self._add(self.__class__([other]))
         elif isinstance(other, Polynomial):
             return self._add(self, other)
         else:
@@ -178,7 +178,7 @@ class Polynomial:
             shorter = list(self._coeffs); longer = list(other._coeffs)
         else:
             shorter = list(other._coeffs); longer = list(self._coeffs)
-        return Polynomial([shorter[i]+longer[i] for i in range(mindeg+1)]+longer[mindeg+1:])
+        return self.__class__([shorter[i]+longer[i] for i in range(mindeg+1)]+longer[mindeg+1:])
 
     def __neg__(self):
         """Return the negative of a Polynomial.
@@ -188,7 +188,7 @@ class Polynomial:
         -2x - 3x^2
 
         """
-        return Polynomial([-x for x in self])
+        return self.__class__([-x for x in self])
 
     def __sub__(self, other):
         """Return the difference of two Polynomials, interpreting scalars as Polynomials.
@@ -236,7 +236,7 @@ class Polynomial:
         """pre: self and other's type is Polynomial or Number.
            post: return the sum of self and other as polynomials."""
         if isinstance(other, Number):
-            return self._mul(Polynomial([other]))
+            return self._mul(self.__class__([other]))
         elif isinstance(other, Polynomial):
             return self._mul(other)
         else:
@@ -247,7 +247,7 @@ class Polynomial:
 
         """
         if isinstance(other, Number):
-            return self._mul(Polynomial([other]))
+            return self._mul(self.__class__([other]))
         elif isinstance(other, Polynomial):
             return self._mul(other)
         else:
@@ -258,7 +258,7 @@ class Polynomial:
 
         """
         if self._degree is None or other._degree is None:
-            return Polynomial([0])
+            return self.__class__([0])
         product = []
 
         # See chapter 17, section 17.2, the section on vector convolutions in the
@@ -288,7 +288,7 @@ class Polynomial:
             for j in range(i+1,lowerdeg+1):
                 summa += shorter[j] * longer[higherdeg+1+i-j]
             product.append(summa)
-        return Polynomial(product)
+        return self.__class__(product)
 
         ##Similar to the above algorithm but uses zero padding. Slightly slower,
         ##in general.
@@ -310,7 +310,7 @@ class Polynomial:
         #    for j in range(i+1,n+1): # a zero-padded n degree poly.
         #        summ += lst1[j] * lst2[n+1+i-j]
         #    product.append(summ)
-        #return Polynomial(product)
+        #return self.__class__(product)
 
     def fftmult(self, other):
         """Return the product of two polynomials, computed using (numpy's) FFT.
@@ -321,14 +321,14 @@ class Polynomial:
 
         """
         if self._degree is None or other._degree is None:
-            return Polynomial([0])
+            return self.__class__([0])
         m = self._degree; n = other._degree
 
         '''Notes O(nlog(n)). Doesn't work without modification with Fraction coefficients.'''
         import numpy as np
         p1=np.array(list(self) + n * [0])
         p2=np.array(list(other) + m * [0])
-        return Polynomial((np.fft.ifft(np.fft.fft(p1)*np.fft.fft(p2))).real)
+        return self.__class__((np.fft.ifft(np.fft.fft(p1)*np.fft.fft(p2))).real)
 
     def degree(self):
         """Return the degree of a Polynomial.
@@ -371,7 +371,7 @@ class Polynomial:
         """
         def recpow(p,n):
             if n == 0:
-                return Polynomial([1])
+                return self.__class__([1])
             else:
                 factor = recpow(p, n // 2)
                 #print("in recpow",factor)
