@@ -52,9 +52,12 @@ __copyright__ = """
 """
 __license__= 'Apache 2.0'
 
+import sys
 import math
 from fractions import Fraction
-from polynomial import Polynomial
+from polylib import Polynomial
+from numbers import Integral
+
 
 def berniPoly(n):
     """Return the generating series x/(1-e^(-x)) modulo (x^(n+1))
@@ -111,10 +114,7 @@ def berni(n):
     else:
         return (-1)**n*math.factorial(n)*q[n]
 
-if __name__ == '__main__':
-
-    import sys
-    from numbers import Integral
+def main():
 
     if len(sys.argv) == 2 and sys.argv[1] == '-v':
         import doctest
@@ -146,3 +146,7 @@ if __name__ == '__main__':
 
     else:
         print("\nB_"+str(n)," = ",berni(n))
+
+if __name__ == '__main__':
+
+    main()

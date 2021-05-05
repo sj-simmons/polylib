@@ -7,7 +7,7 @@ def readme():
 setup(
   entry_points={
       'console_scripts': [
-          'bernoulli = polylib.bernoulli:cli',
+          'bernoulli = polylib.bernoulli:main',
       ],
       'gui_scripts': [],
   },
