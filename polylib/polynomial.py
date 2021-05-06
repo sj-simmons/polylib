@@ -428,7 +428,6 @@ class Polynomial:
         >>> print(Polynomial([0,-1,2,0,-1,1,-2.3]))
         -x + 2x^2 - x^4 + x^5 - 2.3x^6
 
-
         """
         s = ''
         if self._degree == 0:
@@ -492,7 +491,6 @@ class Polynomial:
         else:
             return NotImplemented
 
-
     def __repr__(self):
         """Return repr string.
 
@@ -542,6 +540,16 @@ class FPolynomial(Polynomial):
 
         """Return the quotient and remainder when dividing self by other.
 
+        >>> from fractions import Fraction
+        >>> numerator = FPolynomial((1,0,0,0,Fraction(-1)))
+        >>> divisor = FPolynomial((1, Fraction(-2)))
+        >>> print(numerator); print(divisor)
+        1 - x^4
+        1 - 2x
+        >>> q, r = numerator.divmod(divisor)
+        >>> print(q); print(r)
+        1/16 + 1/8x + 1/4x^2 + 1/2x^3
+        15/16
         """
         if isinstance(other, Number):
             other = FPolynomial([other])
@@ -562,6 +570,46 @@ class FPolynomial(Polynomial):
         else:
             return FPolynomial([0]), self
 
+    def __mod__(self, other):
+
+        """Return the remainder when dividing self by other.
+
+        >>> numerator = FPolynomial((1,0,0,0,-1))
+        >>> divisor = FPolynomial((1,-1))
+        >>> print(numerator); print(divisor)
+        1 - x^4
+        1 - x
+        >>> print(numerator % divisor)
+        0
+        """
+        if isinstance(other, Number):
+            other = FPolynomial([other])
+        elif not isinstance(other, FPolynomial):
+            return NotImplemented
+
+        assert other.degree is not None, "Cannot divide by zero."
+
+        num = copy.copy(self)
+
+        if num.degree() >= other.degree():
+            while num.degree() is not None and num.degree() >= other.degree():
+                monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
+                num -= monomial * other
+            return num
+        else:
+            return self
+
+    def __repr__(self):
+        """Return repr string.
+
+        >>> FPolynomial([])
+        FPolynomial((0,))
+
+        >>> FPolynomial([1, 2, 3, 0])
+        FPolynomial((1, 2, 3))
+
+        """
+        return "FPolynomial(%s)" % str(self._coeffs)
 
 if __name__ == '__main__':
 
