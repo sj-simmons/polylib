@@ -28,7 +28,7 @@ way to compute Bernoulli numbers.)                            -Simmons
 Note: Simmons uses this to gauge performance of polynomial computations
 for various implementations. For timing, try something like:
 
-  py -m timeit -s "import bernoulli" "bernoulli.berni(80)"
+  py -m timeit -s "from polylib.bernoulli import berni" "berni(80)"
 """
 
 __author__ = 'Scott Simmons'
