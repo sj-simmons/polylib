@@ -556,6 +556,9 @@ class FPolynomial(Polynomial):
         elif not isinstance(other, FPolynomial):
             return NotImplemented
 
+        if self.degree() is None:
+            return FPolynomial([0]), FPolynomial([0])
+
         assert other.degree is not None, "Cannot divide by zero."
 
         num = copy.copy(self)
@@ -564,8 +567,8 @@ class FPolynomial(Polynomial):
         if num.degree() >= other.degree():
             while num.degree() is not None and num.degree() >= other.degree():
                 monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
-                num -= monomial * other
-                quo += monomial
+                num = num - monomial * other
+                quo = quo + monomial
             return quo, num
         else:
             return FPolynomial([0]), self
@@ -587,6 +590,9 @@ class FPolynomial(Polynomial):
         elif not isinstance(other, FPolynomial):
             return NotImplemented
 
+        if self.degree() is None:
+            return FPolynomial([0])
+
         assert other.degree is not None, "Cannot divide by zero."
 
         num = copy.copy(self)
@@ -594,7 +600,7 @@ class FPolynomial(Polynomial):
         if num.degree() >= other.degree():
             while num.degree() is not None and num.degree() >= other.degree():
                 monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
-                num -= monomial * other
+                num = num - monomial * other
             return num
         else:
             return self
