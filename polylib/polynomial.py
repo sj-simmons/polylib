@@ -35,27 +35,32 @@ class Polynomial:
 
     """Implements addition, subtraction, multiplication, and evaluation of polynomials.
 
-      Notes:
+       Notes:
 
          Trailing zero terms are stripped away upon instantiation.
 
-         Not None but, rather, p = Polynomial([]) is the 0 polynomial; for which p.degree = None.
+         Not None but, rather, p = Polynomial([]) is the 0 polynomial; for which p.degree()
+         returns None.
 
          A non-zero constant polynomial has degree 0.
 
-         Be careful: comparison is just comparison of lists which may or may not be what the
-         user wants on the level of polynomials; and, similarly, regarding max, min, sort,
-         reverse, etc
+         Be careful: comparison is just comparison of tuples which may or may not be what
+         the user wants on the level of polynomials; and, similarly, regarding max, min,
+         sort, reverse, etc
+
+         All polynomial operations (addition, muliplication, etc.) return instances of the
+         same type as self; that is, a Polynomial or a possibly a subclass of Polynomial if
+         in fact this class has been extended.
     """
 
-    """ Implementation notes:
+    """Implementation notes:
 
-        Some methods use local variables (which is more efficient than accessing instance
-        variables) whenever, in general, doing so improves performance.
+       Some methods use local variables (which is more efficient than accessing instance
+       variables) whenever, in general, doing so improves performance.
 
-        class invariant:
+       class invariant:
 
-        If poly is instantiated using poly = Polynomial([a_0,a_1,...,a_n]), then
+       If poly is instantiated using poly = Polynomial([a_0,a_1,...,a_n]), then
 
          1. self._degree is the mathematical degree of poly:
                - if poly is not the 0 polynomial, then its degree is the largest
@@ -534,6 +539,9 @@ class FPolynomial(Polynomial):
 
     """Extends the Polynomial class for use with polynomials over a field.
 
+    This subclass adds two methods, __divmod__ and __mod__, to the Polynomial class.
+    each of which return polynomial(s) of type FPolynomial.
+
     """
 
     def divmod(self, other):
@@ -557,11 +565,11 @@ class FPolynomial(Polynomial):
             return NotImplemented
 
         if self.degree() is None:
-            return FPolynomial([0]), FPolynomial([0])
+            return self.__class__([0]), self.__class__([0])
 
         assert other.degree is not None, "Cannot divide by zero."
 
-        num = copy.copy(self)
+        num = FPolynomial(self._coeffs)
         quo = FPolynomial([])
 
         if num.degree() >= other.degree():
@@ -569,9 +577,9 @@ class FPolynomial(Polynomial):
                 monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
                 num = num - monomial * other
                 quo = quo + monomial
-            return quo, num
+            return self.__class__(quo._coeffs), self.__class__(num._coeffs)
         else:
-            return FPolynomial([0]), self
+            return self.__class__([0]), self
 
     def __mod__(self, other):
 
@@ -595,13 +603,13 @@ class FPolynomial(Polynomial):
 
         assert other.degree is not None, "Cannot divide by zero."
 
-        num = copy.copy(self)
+        num = FPolynomial(self._coeffs)
 
         if num.degree() >= other.degree():
             while num.degree() is not None and num.degree() >= other.degree():
                 monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
                 num = num - monomial * other
-            return num
+            return self.__class__(num._coeffs)
         else:
             return self
 
@@ -613,7 +621,6 @@ class FPolynomial(Polynomial):
 
         >>> FPolynomial([1, 2, 3, 0])
         FPolynomial((1, 2, 3))
-
         """
         return "FPolynomial(%s)" % str(self._coeffs)
 
