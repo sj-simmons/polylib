@@ -31,10 +31,10 @@ for various implementations. For timing, try something like:
   py -m timeit -s "from polylib.bernoulli import berni" "berni(80)"
 """
 
-__author__ = 'Scott Simmons'
-__version__ = '0.1'
-__status__ = 'Development'
-__date__ = '5/1/21'
+__author__ = "Scott Simmons"
+__version__ = "0.1"
+__status__ = "Development"
+__date__ = "5/1/21"
 __copyright__ = """
   Copyright 2014-2021 Scott Simmons
 
@@ -50,7 +50,7 @@ __copyright__ = """
   See the License for the specific language governing permissions and
   limitations under the License.
 """
-__license__= 'Apache 2.0'
+__license__ = "Apache 2.0"
 
 import sys
 import math
@@ -59,7 +59,7 @@ from polylib import Polynomial
 from numbers import Integral
 
 
-def berniPoly(n):
+def berniPoly(n: int) -> Polynomial:
     """Return the generating series x/(1-e^(-x)) modulo (x^(n+1))
        as a Polynomial.
 
@@ -79,21 +79,21 @@ def berniPoly(n):
 
     """
     # generate n terms of the polynomial p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
-    p = [0]
-    for i in range(2,n+2):
-        p.append(Fraction((-1)**i,math.factorial(i)))
-    p = Polynomial(p)
+    p = [Fraction(0)]
+    for i in range(2, n + 2):
+        p.append(Fraction((-1) ** i, math.factorial(i)))
+    pp = Polynomial(p)
 
     q = Polynomial([Fraction(1)])
 
-    for i in range(1,n+1):
-        q = q *p + Polynomial([1])
-        q = Polynomial(q[:n+2])
+    for i in range(1, n + 1):
+        q = q * pp + Polynomial([1])
+        q = Polynomial(q[: n + 2])
 
-    return Polynomial(q[:n+1])
+    return Polynomial(q._coeffs[: n + 1])
 
 
-def berni(n):
+def berni(n: int) -> int:
     """Return B_n, the nth Bernoulli number.
 
        B_n is defined by:
@@ -112,41 +112,45 @@ def berni(n):
     if q.degree() < n:
         return 0
     else:
-        return (-1)**n*math.factorial(n)*q[n]
+        return (-1) ** n * math.factorial(n) * q[n]
+
 
 def main():
 
-    if len(sys.argv) == 2 and sys.argv[1] == '-v':
+    if len(sys.argv) == 2 and sys.argv[1] == "-v":
         import doctest
+
         doctest.testmod(verbose=True)
         sys.exit()
 
-    if not ( 2 <= len(sys.argv) <= 3 ):
+    if not (2 <= len(sys.argv) <= 3):
         sys.exit(print(__doc__))
 
-    n = None; show = False
+    n = None
+    show = False
 
-    for arg in sys.argv:    # process command line
-        if 's' in arg:
+    for arg in sys.argv:  # process command line
+        if "s" in arg:
             show = True
         if arg.isdigit():
             n = int(arg)
 
-    if n is None or not isinstance(n,Integral) or n < 0:
+    if n is None or not isinstance(n, Integral) or n < 0:
         sys.exit(print(__doc__))
 
     p = berniPoly(n)
 
     if show == True:
-        print("\nx/(1-e^(-x)) =\n",p,"+ O(x^"+str(n+1)+")")
+        print("\nx/(1-e^(-x)) =\n", p, "+ O(x^" + str(n + 1) + ")")
         if p.degree() < n:
-            print("\nB_"+str(n)," = ",0)
+            print("\nB_" + str(n), " = ", 0)
         else:
-            print("\nB_"+str(n)," = ",(-1)**n*math.factorial(n)*p[-1])
+            print("\nB_" + str(n), " = ", (-1) ** n * math.factorial(n) * p[-1])
 
     else:
-        print("\nB_"+str(n)," = ",berni(n))
+        print("\nB_" + str(n), " = ", berni(n))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     main()

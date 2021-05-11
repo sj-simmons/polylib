@@ -1,4 +1,3 @@
-
 """Provide polynomial classes.
 
  The base class here is a polynomial class implemented using composition with tuple objects.
@@ -9,10 +8,10 @@
 import copy
 from numbers import Number
 
-__author__ = 'Scott Simmons'
-__version__ = '0.1'
-__status__ = 'Development'
-__date__ = '5/1/21'
+__author__ = "Scott Simmons"
+__version__ = "0.1"
+__status__ = "Development"
+__date__ = "5/1/21"
 __copyright__ = """
   Copyright 2014-2021 Scott Simmons
 
@@ -28,29 +27,29 @@ __copyright__ = """
   See the License for the specific language governing permissions and
   limitations under the License.
 """
-__license__= 'Apache 2.0'
+__license__ = "Apache 2.0"
 
 
 class Polynomial:
 
     """Implements addition, subtraction, multiplication, and evaluation of polynomials.
 
-       Notes:
+    Notes:
 
-         Trailing zero terms are stripped away upon instantiation.
+      Trailing zero terms are stripped away upon instantiation.
 
-         Not None but, rather, p = Polynomial([]) is the 0 polynomial; for which p.degree()
-         returns None.
+      Not None but, rather, p = Polynomial([]) is the 0 polynomial; for which p.degree()
+      returns None.
 
-         A non-zero constant polynomial has degree 0.
+      A non-zero constant polynomial has degree 0.
 
-         Be careful: comparison is just comparison of tuples which may or may not be what
-         the user wants on the level of polynomials; and, similarly, regarding max, min,
-         sort, reverse, etc
+      Be careful: comparison is just comparison of tuples which may or may not be what
+      the user wants on the level of polynomials; and, similarly, regarding max, min,
+      sort, reverse, etc
 
-         All polynomial operations (addition, muliplication, etc.) return instances of the
-         same type as self; that is, a Polynomial or a possibly a subclass of Polynomial if
-         in fact this class has been extended.
+      All polynomial operations (addition, muliplication, etc.) return instances of the
+      same type as self; that is, a Polynomial or a possibly a subclass of Polynomial if
+      in fact this class has been extended.
     """
 
     """Implementation notes:
@@ -75,52 +74,52 @@ class Polynomial:
     def __init__(self, coeffs=(0,)):
         """Create a Polynomial.
 
-           Polynomial([a_0,a_1,...,a_n]) or Polynomial((a_0,a_1,...,a_n)) constructs
-           the polynomial a_0 + a_1 x + ... + a_n x^n in which case the coefficients
-           will be indexed lists or tuples, respectively.
+        Polynomial([a_0,a_1,...,a_n]) or Polynomial((a_0,a_1,...,a_n)) constructs
+        the polynomial a_0 + a_1 x + ... + a_n x^n in which case the coefficients
+        will be indexed lists or tuples, respectively.
 
-           Interactively, e.g.,
+        Interactively, e.g.,
 
-           >>> p = Polynomial([-1, 2, -3, 0, .4, 0])
-           >>> print(p)
-           -1 + 2x - 3x^2 + 0.4x^4
-           >>> print(p.degree())
-           4
-           >>> p
-           Polynomial((-1, 2, -3, 0, 0.4))
-           >>> p[2]
-           -3
-           >>> print(p[1:])
-           (2, -3, 0, 0.4)
-           >>> print(Polynomial((0,) + p[1:]))
-           2x - 3x^2 + 0.4x^4
-           >>> print(Polynomial([0] + list(p[1:])))
-           2x - 3x^2 + 0.4x^4
+        >>> p = Polynomial([-1, 2, -3, 0, .4, 0])
+        >>> print(p)
+        -1 + 2x - 3x^2 + 0.4x^4
+        >>> print(p.degree())
+        4
+        >>> p
+        Polynomial((-1, 2, -3, 0, 0.4))
+        >>> p[2]
+        -3
+        >>> print(p[1:])
+        (2, -3, 0, 0.4)
+        >>> print(Polynomial((0,) + p[1:]))
+        2x - 3x^2 + 0.4x^4
+        >>> print(Polynomial([0] + list(p[1:])))
+        2x - 3x^2 + 0.4x^4
 
-           >>> from fractions import Fraction
-           >>> q = Polynomial((Fraction(1), Fraction(1, 3), Fraction('-2/5')))
-           >>> print(q)
-           1 + 1/3x - 2/5x^2
-           >>> q
-           Polynomial((Fraction(1, 1), Fraction(1, 3), Fraction(-2, 5)))
-           >>> q = Polynomial((Fraction(1), Fraction('1/3'), Fraction(-0.4).limit_denominator()))
-           >>> print(q)
-           1 + 1/3x - 2/5x^2
-           >>> q = Polynomial((Fraction(1), Fraction('1/3'), Fraction('-0.4')))
-           >>> print(q)
-           1 + 1/3x - 2/5x^2
-           >>> from decimal import Decimal, getcontext
-           >>> getcontext().prec = 5
-           >>> q = Polynomial((Decimal(1), Decimal(1)/Decimal(3), Decimal('-0.4')))
-           >>> print(q)
-           1 + 0.33333x - 0.4x^2
+        >>> from fractions import Fraction
+        >>> q = Polynomial((Fraction(1), Fraction(1, 3), Fraction('-2/5')))
+        >>> print(q)
+        1 + 1/3x - 2/5x^2
+        >>> q
+        Polynomial((Fraction(1, 1), Fraction(1, 3), Fraction(-2, 5)))
+        >>> q = Polynomial((Fraction(1), Fraction('1/3'), Fraction(-0.4).limit_denominator()))
+        >>> print(q)
+        1 + 1/3x - 2/5x^2
+        >>> q = Polynomial((Fraction(1), Fraction('1/3'), Fraction('-0.4')))
+        >>> print(q)
+        1 + 1/3x - 2/5x^2
+        >>> from decimal import Decimal, getcontext
+        >>> getcontext().prec = 5
+        >>> q = Polynomial((Decimal(1), Decimal(1)/Decimal(3), Decimal('-0.4')))
+        >>> print(q)
+        1 + 0.33333x - 0.4x^2
 
         """
         """pre: coeffs is a sequence of coefficients for the polynomial being instantiated
            post: self._degree has been set to the mathematical degree of the polynomial
                  self._coeffs is a list of length self._degree the Polynomials coefficients
         """
-        index = len(coeffs) - 1   # index is the index of the last nonzero coefficient
+        index = len(coeffs) - 1  # index is the index of the last nonzero coefficient
         while index > -1 and coeffs[index] == 0:
             coeffs = coeffs[:index]
             index -= 1
@@ -160,9 +159,7 @@ class Polynomial:
             return NotImplemented
 
     def __radd__(self, other):
-        """Reverse add.
-
-        """
+        """Reverse add."""
         if isinstance(other, Number):
             return self._add(self.__class__([other]))
         elif isinstance(other, Polynomial):
@@ -171,19 +168,21 @@ class Polynomial:
             return NotImplemented
 
     def _add(self, other):
-        """Addition helper.
-
-        """
+        """Addition helper."""
         if self._degree is None:
             return other
         if other._degree is None:
             return self
         mindeg = min([self._degree, other._degree])
         if mindeg == self._degree:
-            shorter = list(self._coeffs); longer = list(other._coeffs)
+            shorter = list(self._coeffs)
+            longer = list(other._coeffs)
         else:
-            shorter = list(other._coeffs); longer = list(self._coeffs)
-        return self.__class__([shorter[i]+longer[i] for i in range(mindeg+1)]+longer[mindeg+1:])
+            shorter = list(other._coeffs)
+            longer = list(self._coeffs)
+        return self.__class__(
+            [shorter[i] + longer[i] for i in range(mindeg + 1)] + longer[mindeg + 1 :]
+        )
 
     def __neg__(self):
         """Return the negative of a Polynomial.
@@ -248,9 +247,7 @@ class Polynomial:
             return NotImplemented
 
     def __rmul__(self, other):
-        """Reverse multiply.
-
-        """
+        """Reverse multiply."""
         if isinstance(other, Number):
             return self._mul(self.__class__([other]))
         elif isinstance(other, Polynomial):
@@ -259,9 +256,7 @@ class Polynomial:
             return NotImplemented
 
     def _mul(self, other):
-        """Multiplication helper.
-
-        """
+        """Multiplication helper."""
         if self._degree is None or other._degree is None:
             return self.__class__([0])
         product = []
@@ -278,44 +273,44 @@ class Polynomial:
             shorter = other._coeffs
             longer = self._coeffs
             higherdeg = self._degree
-        for i in range(higherdeg+1):
+        for i in range(higherdeg + 1):
             summa = 0
             if i <= lowerdeg:
-                for j in range(i+1):
-                    summa += shorter[j] * longer[i-j]
+                for j in range(i + 1):
+                    summa += shorter[j] * longer[i - j]
                 product.append(summa)
             else:
-                for j in range(lowerdeg+1):
-                    summa += shorter[j] * longer[i-j]
+                for j in range(lowerdeg + 1):
+                    summa += shorter[j] * longer[i - j]
                 product.append(summa)
         for i in range(lowerdeg):
             summa = 0
-            for j in range(i+1,lowerdeg+1):
-                summa += shorter[j] * longer[higherdeg+1+i-j]
+            for j in range(i + 1, lowerdeg + 1):
+                summa += shorter[j] * longer[higherdeg + 1 + i - j]
             product.append(summa)
         return self.__class__(product)
 
         ##Similar to the above algorithm but uses zero padding. Slightly slower,
         ##in general.
-        #n = max([self._degree, other._degree])
-        #if other._degree == n:
+        # n = max([self._degree, other._degree])
+        # if other._degree == n:
         #    lst1 = list(self) + (n - self._degree) * [0]
         #    lst2 = list(other)
-        #else:
+        # else:
         #    lst1 = list(other) + (n - other._degree) * [0]
         #    lst2 = list(self)        # lst1 and lst2 both now have length n.
-        #product = []
-        #for i in range(n+1):         # compute the first n+1 coefficients of
+        # product = []
+        # for i in range(n+1):         # compute the first n+1 coefficients of
         #    summ = 0                 # of the product.
         #    for j in range(i+1):
         #        summ += lst1[j] * lst2[i-j]
         #    product.append(summ)
-        #for i in range(n):         # compute the rest of the coefficients of
+        # for i in range(n):         # compute the rest of the coefficients of
         #    summ = 0                 # of the product of an n degree poly and
         #    for j in range(i+1,n+1): # a zero-padded n degree poly.
         #        summ += lst1[j] * lst2[n+1+i-j]
         #    product.append(summ)
-        #return self.__class__(product)
+        # return self.__class__(product)
 
     def fftmult(self, other):
         """Return the product of two polynomials, computed using (numpy's) FFT.
@@ -327,13 +322,15 @@ class Polynomial:
         """
         if self._degree is None or other._degree is None:
             return self.__class__([0])
-        m = self._degree; n = other._degree
+        m = self._degree
+        n = other._degree
 
-        '''Notes O(nlog(n)). Doesn't work without modification with Fraction coefficients.'''
+        """Notes O(nlog(n)). Doesn't work without modification with Fraction coefficients."""
         import numpy as np
-        p1=np.array(list(self) + n * [0])
-        p2=np.array(list(other) + m * [0])
-        return self.__class__((np.fft.ifft(np.fft.fft(p1)*np.fft.fft(p2))).real)
+
+        p1 = np.array(list(self) + n * [0])
+        p2 = np.array(list(other) + m * [0])
+        return self.__class__((np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real)
 
     def degree(self):
         """Return the degree of a Polynomial.
@@ -355,7 +352,7 @@ class Polynomial:
         """
         return self._degree
 
-    def __pow__(self,n):
+    def __pow__(self, n):
         """Return the non-negative integral power of a Polynomial, computed recursively.
 
         >>> p = Polynomial([2])
@@ -374,19 +371,21 @@ class Polynomial:
         1 + 3/2x + 3/4x^2 + 1/8x^3
 
         """
-        def recpow(p,n):
+
+        def recpow(p, n):
             if n == 0:
                 return self.__class__([1])
             else:
                 factor = recpow(p, n // 2)
-                #print("in recpow",factor)
+                # print("in recpow",factor)
                 if n % 2 == 0:
                     return factor * factor
                 else:
                     return factor * factor * p
-        return recpow(self,n)
 
-    def fftpow(self,n):
+        return recpow(self, n)
+
+    def fftpow(self, n):
         """Return the non-negative integral power of a Polynomial.
 
         Computed recursively using fftmult.
@@ -397,19 +396,21 @@ class Polynomial:
         1.0 + 6.0x + 12.0x^2 + 8.0x^3
 
         """
-        def fftrecpow(p,n):
+
+        def fftrecpow(p, n):
             if n == 0:
                 return Polynomial([1])
             else:
                 factor = fftrecpow(p, n // 2)
-                #print("in recpow",factor)
+                # print("in recpow",factor)
                 if n % 2 == 0:
                     return factor.fftmult(factor)
                 else:
                     return factor.fftmult(factor.fftmult(p))
-        return fftrecpow(self,n)
 
-    def of(self,x):
+        return fftrecpow(self, n)
+
+    def of(self, x):
         """Return the result of evaluating a Polynomial on a number.
 
         >>> p = Polynomial([1, 17, -1])
@@ -424,7 +425,7 @@ class Polynomial:
         """
         result = 0
         for i in range(self._degree + 1):
-            result += self[i]*x**i
+            result += self[i] * x ** i
         return result
 
     def __str__(self):
@@ -434,35 +435,35 @@ class Polynomial:
         -x + 2x^2 - x^4 + x^5 - 2.3x^6
 
         """
-        s = ''
+        s = ""
         if self._degree == 0:
             return str(self[0])
         if self._degree is None:
-            return '0'
-        for i in range(0,self._degree + 1):
-            if self[i] > 0:             # add coefficient
-                if i != 0 and self[i] == 1 and s != '':
-                    s += ' + '
-                elif i != 0 and s != '':
-                    s += ' + '+str(self[i])
+            return "0"
+        for i in range(0, self._degree + 1):
+            if self[i] > 0:  # add coefficient
+                if i != 0 and self[i] == 1 and s != "":
+                    s += " + "
+                elif i != 0 and s != "":
+                    s += " + " + str(self[i])
                 else:
                     s += str(self[i])
             elif self[i] < 0:
-                if self[i] == -1 and s == '':
+                if self[i] == -1 and s == "":
                     if i == 0:
-                        s += '-1'
+                        s += "-1"
                     else:
-                        s += '-'
+                        s += "-"
                 elif self[i] == -1:
-                    s += ' - '
-                elif s == '':
-                    s += '-'+str(-self[i])
+                    s += " - "
+                elif s == "":
+                    s += "-" + str(-self[i])
                 else:
-                    s += ' - '+str(-self[i])
+                    s += " - " + str(-self[i])
             if i > 1 and self[i] != 0:  # add x^n
-                s += 'x^'+str(i)
-            elif i == 1 and self[i] != 0: # add x
-                s += 'x'
+                s += "x^" + str(i)
+            elif i == 1 and self[i] != 0:  # add x
+                s += "x"
         return s
 
     def __len__(self):
@@ -470,7 +471,7 @@ class Polynomial:
 
         return self._degree + 1
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         """Return true if the two Polynomials have the same degree and equal coefficients.
 
         Coerces constants into constant Polynomials.
@@ -574,7 +575,9 @@ class FPolynomial(Polynomial):
 
         if num.degree() >= other.degree():
             while num.degree() is not None and num.degree() >= other.degree():
-                monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
+                monomial = FPolynomial(
+                    (num.degree() - other.degree()) * [0] + [num[-1] / other[-1]]
+                )
                 num = num - monomial * other
                 quo = quo + monomial
             return self.__class__(quo._coeffs), self.__class__(num._coeffs)
@@ -607,7 +610,9 @@ class FPolynomial(Polynomial):
 
         if num.degree() >= other.degree():
             while num.degree() is not None and num.degree() >= other.degree():
-                monomial = FPolynomial((num.degree()-other.degree())*[0]+[num[-1]/other[-1]])
+                monomial = FPolynomial(
+                    (num.degree() - other.degree()) * [0] + [num[-1] / other[-1]]
+                )
                 num = num - monomial * other
             return self.__class__(num._coeffs)
         else:
@@ -624,8 +629,9 @@ class FPolynomial(Polynomial):
         """
         return "FPolynomial(%s)" % str(self._coeffs)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     import doctest
-    doctest.testmod()
 
+    doctest.testmod()
