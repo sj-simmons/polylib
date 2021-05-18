@@ -3,10 +3,23 @@
  The base class here is a polynomial class implemented using composition with tuple objects.
  The underlying concrete representation of a polynomial is a tuple of its coefficients of
  length equal to its degree.
+
+ TODO:
+
+ - When we can assume Python10, no need to import annotations from __future__ (which is cur-
+   rently used for the type hints for other).
+ - If/when Python's Number numeric hierarchy works with type hints, one might be able to use
+   nominal typing instead of structural typing.
+   Or, or might be better to keep structural typing in any case (so we can use gmpy2 or numpy
+   ints or any numbers that cannot be made to subclass Number).
+ - Later verions os mypy import Protocal from typing, not typing_extensions
 """
 
+from __future__ import annotations
 import copy
 from numbers import Number
+from typing import Sequence, TypeVar, Union, Tuple, List, Optional
+from typing_extensions import Protocol, runtime_checkable
 
 __author__ = "Scott Simmons"
 __version__ = "0.1"
@@ -29,6 +42,26 @@ __copyright__ = """
 """
 __license__ = "Apache 2.0"
 
+T = TypeVar('T')
+#S = TypeVar('S', covariant = True)
+
+@runtime_checkable
+class Ring(Protocol):
+
+    """The minimal operations that we require for a ring.
+
+    This in only used for structural typing purposes.
+    """
+
+    def __add__(self: T, other: T) -> T: ...
+
+    def __neg__(self: T) -> T: ...
+
+    def __mul__(self: T, other: T) -> T: ...
+
+    def __pow__(self: T, n: int) -> T: ...
+
+    #def __eq__(self: T, other: object) -> bool: ...
 
 class Polynomial:
 
@@ -50,33 +83,38 @@ class Polynomial:
       All polynomial operations (addition, muliplication, etc.) return instances of the
       same type as self; that is, a Polynomial or a possibly a subclass of Polynomial if
       in fact this class has been extended.
+
+    Todo:
+
+      1. Consider implementing improved typing in which the coefficients are subclasses
+         of Number.
     """
 
     """Implementation notes:
 
-       Some methods use local variables (which is more efficient than accessing instance
-       variables) whenever, in general, doing so improves performance.
+      Some methods use local variables (which is more efficient than accessing instance
+      variables) whenever, in general, doing so improves performance.
 
-       class invariant:
+      class invariant:
 
-       If poly is instantiated using poly = Polynomial([a_0,a_1,...,a_n]), then
+      If poly is instantiated using poly = Polynomial([a_0,a_1,...,a_n]), then
 
-         1. self._degree is the mathematical degree of poly:
-               - if poly is not the 0 polynomial, then its degree is the largest
-                 m such that a_m is not zero.
-               - the degree of 0 is None.
+        1. self._degree is the mathematical degree of poly:
+              - if poly is not the 0 polynomial, then its degree is the largest
+                m such that a_m is not zero.
+              - the degree of 0 is None.
 
-         2. len(self) = self._degree + 1
+        2. len(self) = self._degree + 1
 
-         3. self._coeffs is a tuple consisting of the coefficients of self.
+        3. self._coeffs is a tuple consisting of the coefficients of self.
     """
 
-    def __init__(self, coeffs=(0,)):
+    def __init__(self, coeffs: Sequence[Ring] = ()):
         """Create a Polynomial.
 
         Polynomial([a_0,a_1,...,a_n]) or Polynomial((a_0,a_1,...,a_n)) constructs
-        the polynomial a_0 + a_1 x + ... + a_n x^n in which case the coefficients
-        will be indexed lists or tuples, respectively.
+        the polynomial a_0 + a_1 x + ... + a_n x^n.  In either case, the coeffici-
+        ents will be an indexed tuple.
 
         Interactively, e.g.,
 
@@ -124,13 +162,13 @@ class Polynomial:
             coeffs = coeffs[:index]
             index -= 1
         if index == -1:
-            self._coeffs = (0,)
+            self._coeffs: Sequence[Ring] = (0,)
             self._degree = None
         else:
             self._coeffs = tuple(coeffs)
             self._degree = index
 
-    def __add__(self, other):
+    def __add__(self, other: Union[Number, Polynomial]):
         """Return the sum of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -151,23 +189,23 @@ class Polynomial:
         """pre: self and other's type is Polynomial or Number.
            post: return the sum of self and other as polynomials.
         """
-        if isinstance(other, Number):
+        if isinstance(other, Ring):
             return self._add(self.__class__((other,)))
         elif isinstance(other, Polynomial):
             return self._add(other)
         else:
             return NotImplemented
 
-    def __radd__(self, other):
+    def __radd__(self, other: Union[Ring, Polynomial]):
         """Reverse add."""
-        if isinstance(other, Number):
-            return self._add(self.__class__([other]))
+        if isinstance(other, Ring):
+            return self._add(self.__class__((other,)))
         elif isinstance(other, Polynomial):
-            return self._add(self, other)
+            return self._add(other)
         else:
             return NotImplemented
 
-    def _add(self, other):
+    def _add(self, other: Polynomial):
         """Addition helper."""
         if self._degree is None:
             return other
@@ -175,13 +213,14 @@ class Polynomial:
             return self
         mindeg = min([self._degree, other._degree])
         if mindeg == self._degree:
-            shorter = list(self._coeffs)
-            longer = list(other._coeffs)
+            shorter = tuple(self._coeffs)
+            longer = tuple(other._coeffs)
         else:
-            shorter = list(other._coeffs)
-            longer = list(self._coeffs)
+            shorter = tuple(other._coeffs)
+            longer = tuple(self._coeffs)
         return self.__class__(
-            [shorter[i] + longer[i] for i in range(mindeg + 1)] + longer[mindeg + 1 :]
+            tuple([shorter[i] + longer[i] for i in range(mindeg + 1)])
+            + longer[mindeg + 1 :]
         )
 
     def __neg__(self):
@@ -246,16 +285,16 @@ class Polynomial:
         else:
             return NotImplemented
 
-    def __rmul__(self, other):
+    def __rmul__(self: Polynomial, other: Union[Ring, Polynomial]) -> Polynomial:
         """Reverse multiply."""
-        if isinstance(other, Number):
+        if isinstance(other, Ring):
             return self._mul(self.__class__([other]))
         elif isinstance(other, Polynomial):
             return self._mul(other)
         else:
             return NotImplemented
 
-    def _mul(self, other):
+    def _mul(self: Polynomial, other: Polynomial) -> Polynomial:
         """Multiplication helper."""
         if self._degree is None or other._degree is None:
             return self.__class__([0])
@@ -274,7 +313,7 @@ class Polynomial:
             longer = self._coeffs
             higherdeg = self._degree
         for i in range(higherdeg + 1):
-            summa = 0
+            summa = 0 # type: Ring
             if i <= lowerdeg:
                 for j in range(i + 1):
                     summa += shorter[j] * longer[i - j]
@@ -284,10 +323,10 @@ class Polynomial:
                     summa += shorter[j] * longer[i - j]
                 product.append(summa)
         for i in range(lowerdeg):
-            summa = 0
+            summa_ = 0 # type: Ring
             for j in range(i + 1, lowerdeg + 1):
-                summa += shorter[j] * longer[higherdeg + 1 + i - j]
-            product.append(summa)
+                summa_ += shorter[j] * longer[higherdeg + 1 + i - j]
+            product.append(summa_)
         return self.__class__(product)
 
         ##Similar to the above algorithm but uses zero padding. Slightly slower,
@@ -312,27 +351,28 @@ class Polynomial:
         #    product.append(summ)
         # return self.__class__(product)
 
-    def fftmult(self, other):
+    def fftmult(self: Polynomial, other: Polynomial) -> Polynomial:
         """Return the product of two polynomials, computed using (numpy's) FFT.
 
         >>> p = Polynomial([1,2,3]); q = Polynomial([1,2]);
         >>> print(p.fftmult(q))
         1.0 + 4.0x + 7.0x^2 + 6.0x^3
 
+        Notes: O(nlog(n)). Doesn't work without modification with Fraction coefficients.
         """
+        import numpy as np
+
         if self._degree is None or other._degree is None:
             return self.__class__([0])
         m = self._degree
         n = other._degree
 
-        """Notes O(nlog(n)). Doesn't work without modification with Fraction coefficients."""
-        import numpy as np
-
-        p1 = np.array(list(self) + n * [0])
-        p2 = np.array(list(other) + m * [0])
+        zero: List[Ring] = [0]
+        p1 = np.array(list(self._coeffs) + n * zero)
+        p2 = np.array(list(other._coeffs) + m * zero)
         return self.__class__((np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real)
 
-    def degree(self):
+    def degree(self: Polynomial) -> Optional[int]:
         """Return the degree of a Polynomial.
 
         >>> p = Polynomial([1, 2, 0, 0])
@@ -352,7 +392,7 @@ class Polynomial:
         """
         return self._degree
 
-    def __pow__(self, n):
+    def __pow__(self: Polynomial, n: int) -> Polynomial:
         """Return the non-negative integral power of a Polynomial, computed recursively.
 
         >>> p = Polynomial([2])
@@ -385,7 +425,7 @@ class Polynomial:
 
         return recpow(self, n)
 
-    def fftpow(self, n):
+    def fftpow(self: Polynomial, n: int) -> Polynomial:
         """Return the non-negative integral power of a Polynomial.
 
         Computed recursively using fftmult.
@@ -410,7 +450,7 @@ class Polynomial:
 
         return fftrecpow(self, n)
 
-    def of(self, x):
+    def of(self: Polynomial, x: Ring) -> Ring:
         """Return the result of evaluating a Polynomial on a number.
 
         >>> p = Polynomial([1, 17, -1])
@@ -423,12 +463,15 @@ class Polynomial:
         43
 
         """
-        result = 0
-        for i in range(self._degree + 1):
-            result += self[i] * x ** i
-        return result
+        result: Ring = 0
+        if self._degree is None:
+            return result
+        else:
+            for i in range(self._degree + 1):
+                result += self[i] * x ** i
+            return result
 
-    def __str__(self):
+    def __str__(self: Polynomial) -> str:
         """String coercion.
 
         >>> print(Polynomial([0,-1,2,0,-1,1,-2.3]))
@@ -466,12 +509,15 @@ class Polynomial:
                 s += "x"
         return s
 
-    def __len__(self):
+    def __len__(self: Polynomial) -> int:
         """Return number of coefficients of a Polynomial, which is its degree + 1."""
 
-        return self._degree + 1
+        if self._degree is None:
+            return 1
+        else:
+            return self._degree + 1
 
-    def __eq__(self, other):
+    def __eq__(self: Polynomial, other: object) -> bool:
         """Return true if the two Polynomials have the same degree and equal coefficients.
 
         Coerces constants into constant Polynomials.
@@ -487,17 +533,13 @@ class Polynomial:
 
         """
         if isinstance(other, Polynomial):
-            if self._coeffs == other._coeffs:
-                return True
-            return False
-        elif isinstance(other, Number):
-            if self._coeffs == Polynomial([other])._coeffs:
-                return True
-            return False
+            return self._coeffs == other._coeffs
+        elif isinstance(other, Ring):
+            return self._coeffs == Polynomial([other])._coeffs
         else:
             return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self: Polynomial) -> str:
         """Return repr string.
 
         >>> Polynomial([])
@@ -509,8 +551,10 @@ class Polynomial:
         """
         return "Polynomial(%s)" % str(self._coeffs)
 
-    def __getitem__(self, n):
+    def __getitem__(self: Polynomial, n: int) -> Ring:
         """Built-in Indexing.
+
+        Return an element tuple self._coeffs.
 
         >>> p = Polynomial((1, 2, 3, 4, 0))
         >>> print(p[2:])
@@ -522,15 +566,18 @@ class Polynomial:
         >>> next(it)
         2
 
+        >>> print(p[-1])
+        4
+
         """
         return self._coeffs[n]
 
-    def __copy__(self):
+    def __copy__(self: Polynomial) -> Polynomial:
         new_instance = type(self)(self._coeffs)
         new_instance.__dict__.update(self.__dict__)
         return new_instance
 
-    def __deep__copy(self, memodict={}):
+    def __deep__copy(self: Polynomial, memodict: dict = {}):
         new_instance = type(self)(copy.deepcopy(self._coeffs, memodict))
         new_instance.__dict__.update(self.__dict__)
         return new_instance
