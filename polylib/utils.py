@@ -5,7 +5,7 @@ from operator import mul
 __author__ = "Scott Simmons"
 __version__ = "0.1"
 __status__ = "Development"
-__date__ = "5/1/21"
+__date__ = "06/23/21"
 __copyright__ = """
   Copyright 2014-2021 Scott Simmons
 

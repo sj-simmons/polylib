@@ -34,7 +34,7 @@ for various implementations. For timing, try something like:
 __author__ = "Scott Simmons"
 __version__ = "0.1"
 __status__ = "Development"
-__date__ = "5/1/21"
+__date__ = "06/23/21"
 __copyright__ = """
   Copyright 2014-2021 Scott Simmons
 
@@ -54,6 +54,7 @@ __license__ = "Apache 2.0"
 
 import sys
 import math
+from typing import cast
 from fractions import Fraction
 from polylib import Polynomial
 from numbers import Integral
@@ -78,17 +79,17 @@ def berniPoly(n: int) -> Polynomial:
     B_0 = 1, B_1 = -1/2, B_2 = 1/6, ...
 
     """
-    # generate n terms of the polynomial p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
-    p = [Fraction(0)]
+    # generate n terms of the series p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
+    p_ = [Fraction(0)]
     for i in range(2, n + 2):
-        p.append(Fraction((-1) ** i, math.factorial(i)))
-    pp = Polynomial(p)
+        p_.append(Fraction((-1) ** i, math.factorial(i)))
+    p = Polynomial(p_)
 
     q = Polynomial([Fraction(1)])
 
     for i in range(1, n + 1):
-        q = q * pp + Polynomial([1])
-        q = Polynomial(q[: n + 2])
+        q = q * p + Polynomial([Fraction(1)])
+        q = Polynomial(q._coeffs[: n + 2])
 
     return Polynomial(q._coeffs[: n + 1])
 
@@ -106,10 +107,11 @@ def berni(n: int) -> int:
     -3617/510
 
     """
+    assert n >= 0
     q = berniPoly(n)
 
     # be careful: Polynomial strips trailing zeros
-    if q.degree() < n:
+    if cast(int, q.degree()) < n:
         return 0
     else:
         return (-1) ** n * math.factorial(n) * q[n]
