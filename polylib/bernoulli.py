@@ -122,7 +122,8 @@ def main():
     if len(sys.argv) == 2 and sys.argv[1] == "-v":
         import doctest
 
-        doctest.testmod(verbose=True)
+        # doctest.testmod()
+        doctest.testmod(verbose=False)
         sys.exit()
 
     if not (2 <= len(sys.argv) <= 3):
@@ -131,7 +132,7 @@ def main():
     n = None
     show = False
 
-    for arg in sys.argv:  # process command line
+    for arg in sys.argv[1:]:  # process command line
         if "s" in arg:
             show = True
         if arg.isdigit():
@@ -150,7 +151,7 @@ def main():
             print("\nB_" + str(n), " = ", (-1) ** n * math.factorial(n) * p[-1])
 
     else:
-        print("\nB_" + str(n), " = ", berni(n))
+        print("B_" + str(n), " = ", berni(n))
 
 
 if __name__ == "__main__":
