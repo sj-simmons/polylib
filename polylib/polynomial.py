@@ -865,7 +865,7 @@ class Polynomial(Generic[Ring]):
             >>> Polynomial([1, 2, 3, 0])
             Polynomial((1, 2, 3))
         """
-        return "Polynomial(%s)" % str(self._coeffs)
+        return "Polynomial(%s)" % repr(self._coeffs)
 
     def __getitem__(self: Polynomial[Ring], n: int) -> Ring:
         """Built-in Indexing.
@@ -1169,7 +1169,7 @@ class FPolynomial(Polynomial[Field]):
             >>> FPolynomial([1, 2, 3, 0])
             FPolynomial((1, 2, 3))
         """
-        return "FPolynomial(%s)" % str(self._coeffs)
+        return "FPolynomial(%s)" % repr(self._coeffs)
 
     # below here (and most if not all of the casting above is just for mypy purposes
 
