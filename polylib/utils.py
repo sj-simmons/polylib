@@ -58,7 +58,7 @@ def cyclotomic(n: int, x: Polynomial = Polynomial([0, 1])) -> Polynomial:
         >>> print(cyclotomic(2, x))
         1 + x
         >>> print(repr(cyclotomic(2, x)))
-        FPolynomial((1 mod 17, 1 mod 17))
+        FPolynomial((1 + <17>, 1 + <17>))
     """
     if not isinstance(n, int):
         raise TypeError(f"n must be of type int, not {type(n)}")
