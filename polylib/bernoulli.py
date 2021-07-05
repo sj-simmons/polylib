@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""
-Computes the nth Bernoulli number by computing the requisite number of
-terms of the generating series x/(1-e^(-x)). (This is not an efficient
-way to compute Bernoulli numbers.)                            -Simmons
+"""Computes the nth Bernoulli number by computing the requisite number
+of terms of the generating series x/(1-e^(-x)). (This is not an effic-
+ient way to compute Bernoulli numbers.)
 
   Usage: py bernoulli.py [options] n
 
@@ -28,7 +27,7 @@ way to compute Bernoulli numbers.)                            -Simmons
 Note: Simmons uses this to gauge performance of polynomial computations
 for various implementations. For timing, try something like:
 
-  py -m timeit -s "from polylib.bernoulli import berni" "berni(80)"
+  python -m timeit -s "from polylib.bernoulli import berni" "berni(80)"
 """
 
 __author__ = "Scott Simmons"
@@ -85,13 +84,15 @@ def berniPoly(n: int) -> Polynomial:
         p_.append(Fraction((-1) ** i, math.factorial(i)))
     p = Polynomial(p_)
 
-    q = Polynomial([Fraction(1)])
+    #q = Polynomial([Fraction(1)])
 
-    for i in range(1, n + 1):
-        q = q * p + Polynomial([Fraction(1)])
-        q = Polynomial(q._coeffs[: n + 2])
+    #for i in range(1, n + 1):
+    #    q = q * p + Polynomial([Fraction(1)])
+    #    q = Polynomial(q._coeffs[: n + 2])
 
-    return Polynomial(q._coeffs[: n + 1])
+    #return Polynomial(q._coeffs[: n + 1])
+
+    return Polynomial([1]) if n == 0 else (1-p).formalinv(n)
 
 
 def berni(n: int) -> int:
@@ -144,7 +145,7 @@ def main():
     p = berniPoly(n)
 
     if show == True:
-        print("\nx/(1-e^(-x)) =\n", p, "+ O(x^" + str(n + 1) + ")")
+        print("\nx/(1-e^(-x)) =\n", p, f"+ O({str(Polynomial([0]*(n+1)+[1]))})")
         if p.degree() < n:
             print("\nB_" + str(n), " = ", 0)
         else:
