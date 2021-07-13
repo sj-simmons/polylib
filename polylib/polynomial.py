@@ -193,7 +193,6 @@ class Polynomial(Generic[Ring]):
         3. self._coeffs is a tuple consisting of the coefficients of self.
     """
 
-    #  Get rid of the Union below?
     def __init__(self: Polynomial[Ring], coeffs: Sequence[Ring], x: str = "x") -> None:
         """Create a Polynomial.
 
@@ -286,12 +285,12 @@ class Polynomial(Generic[Ring]):
               coefficients
               self.x controls the variable to use and parens when printing
         """
+        if len(coeffs) == 0:
+            raise ValueError("coeffs cannot be empty")
+
         self.x = x
 
         self._degree: Optional[int]
-
-        if len(coeffs) == 0:
-            raise ValueError("coeffs cannot be empty")
 
         index = len(coeffs) - 1  # the index of the last nonzero coefficient
         while index > 0 and coeffs[index] == 0:
@@ -558,8 +557,6 @@ class Polynomial(Generic[Ring]):
     def __pow__(self: Polynomial[Ring], n: int) -> Polynomial[Ring]:
         """Return the non-negative integral power of a Polynomial.
 
-        This is recursive.
-
         Examples:
 
             >>> p = Polynomial([2])
@@ -579,15 +576,21 @@ class Polynomial(Generic[Ring]):
             >>> from fractions import Fraction
             >>> print(Polynomial([1, Fraction(1,2)])**3)
             1 + 3/2x + 3/4x^2 + 1/8x^3
+
+            >>> p = Polynomial([0])
+            >>> print(p**0)
+            1
         """
-        if not isinstance(n, int):
-            raise TypeError(f"n must have type int, not {type(n)}")
         if n < 0:
             raise ValueError(f"n must be nonnegative, not {n}")
 
         if self.degree() is None:
-            return self
+            if n == 0:
+                return self.__class__([cast(Ring, 0) * self[-1] + cast(Ring, 1)], self.x)
+            else:
+                return self
 
+        # NOTE: DO YOU WANT THIS OR JUST RECURSIVELY CALL POW
         def recpow(p: Polynomial[Ring], n: int) -> Polynomial[Ring]:
             if n == 0:
                 return self.__class__(
@@ -655,13 +658,12 @@ class Polynomial(Generic[Ring]):
             >>> print(p.of(p))
             3 + 4x
         """
-        if self._degree is None:
+        if self._degree is None or self.degree == 0 or x == 0 * self._coeffs[0]:
             return self._coeffs[0]
-        else:
-            result = cast(Ring, 0)
-            for i in range(self._degree + 1):
-                result += self[i] * x ** i
-            return result
+        result = cast(Ring, 0) * self._coeffs[0]
+        for i in range(self._degree + 1):
+            result += self[i] * x ** i
+        return result
 
     def __str__(self: Polynomial[Ring], streamline: bool = True) -> str:
         """String coercion.
@@ -977,6 +979,8 @@ class Polynomial(Generic[Ring]):
             Traceback (most recent call last):
             ValueError: divisor must have leading coefficient 1 or -1, not 5
 
+            >>> print(Polynomial((0,)) % divisor)
+            0
         """
 
         if not isinstance(other, Polynomial):
@@ -1034,8 +1038,70 @@ class Polynomial(Generic[Ring]):
 
         return self.divmod(other)[0]
 
-    def __hash__(self: Polynomial) -> int:
+    def __hash__(self: Polynomial[Ring]) -> int:
         return hash(self._coeffs)
+
+    def formalinv( self: Polynomial[Ring], maxdegree: int) -> Polynomial[Ring]:
+        """Formally (as series) invert self modulo  maxdegree+1.
+
+        >>> x = Polynomial([0,1])
+        >>> print((1 - x).formalinv(5))
+        1 + x + x^2 + x^3 + x^4 + x^5
+        >>> print((1 + x).formalinv(2))
+        1 - x + x^2
+        >>> print((1 - x**2).formalinv(5))
+        1 + x^2 + x^4
+        >>> print((1 - x**3).formalinv(6))
+        1 + x^3 + x^6
+        >>> print((-1 + x**2).formalinv(1))
+        -1
+        >>> print((x**12 - 1) * (x**3 - 1).formalinv(4))
+        1 + x^3 - x^12 - x^15
+
+        >>> p1 = (x**12 - 1)
+        >>> p2 = (x**3 - 1)
+        >>> deg_quot = p1._degree - p2._degree
+        >>> (p1*p2.formalinv(deg_quot)).truncate(deg_quot) == p1 // p2
+        True
+        """
+        if not (self[0] == 1 or self[0] == -1):
+            raise ValueError(f"constant term must be 1 or -1, not {self[0]}")
+        if not maxdegree > 0:
+            raise ValueError(f"maxdegree should be positive, not {maxdegree}")
+
+        firstnonzero = 1
+        while self[firstnonzero] == 0:
+            firstnonzero += 1
+        realmax = maxdegree // firstnonzero
+
+        accum = 1
+        for _ in range(realmax):
+            accum = (accum * (1 - self[0]*self) + 1).truncate(maxdegree)
+
+        return self[0]*accum
+
+
+    def apply(self, function):
+        """Return copy of self with coefficient mapped according to function."""
+
+        return self.__class__(tuple(map(function, self._coeffs)), self.x)
+
+    def truncate(self, degree):
+        """Return copy of self truncated beyond degree.
+
+        Examples:
+
+            >>> print(Polynomial([1]*5))
+            1 + x + x^2 + x^3 + x^4
+            >>> print(Polynomial([1]*5).truncate(2))
+            1 + x + x^2
+        """
+        if degree < 0:
+            raise ValueError(
+                 f"truncation degree must be nonnegative, not {degree}"
+            )
+
+        return self.__class__(self._coeffs[:degree + 1], self.x)
 
 
 Field = TypeVar("Field", bound=DivisionRing_)
@@ -1203,7 +1269,7 @@ class FPolynomial(Polynomial[Field]):
     ) -> FPolynomial[Field]:
         return cast(FPolynomial[Field], super(FPolynomial, self).__mul__(other))
 
-    # just calling super's rmul here causes come test to loop infinitely so
+    # just calling super's rmul here causes some test to loop infinitely so
     # redid all of the reverse ops above this way
     def __rmul__(self: FPolynomial[Field], other: Field) -> FPolynomial[Field]:
         if isinstance(other, DivisionRing_):
@@ -1218,7 +1284,6 @@ class FPolynomial(Polynomial[Field]):
         self: FPolynomial[Field], other: Polynomial[Field]
     ) -> FPolynomial[Field]:
         return cast(FPolynomial[Field], super(FPolynomial, self).__floordiv__(other))
-
 
 if __name__ == "__main__":
 

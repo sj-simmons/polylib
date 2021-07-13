@@ -1,8 +1,8 @@
 # polylib
 
-The package provides classes for easily computing with polynomials over a ring or over
-a field.  See below for example usage. After installation, additional documentation
-is made available by typing in your Python interpreter:
+The package provides a class for concretely computing in the ring of polynomials with
+coefficients in a given ring or field.  See below for example usage. After installation,
+additional documentation is made available by typing in your Python interpreter:
 ```pycon
 >>> import polylib
 >>> help(polylib.Polynomial)
@@ -18,7 +18,7 @@ commandline or, if **~/.local/bin/** is not in your PATH, type **~/.local/bin/be
 ### Contents
 * [Installation](#installation)
 * [Basic usage](#basic-usage)
-* [Cyclotomic Polynomials](#cyclotomic-polynomials)
+* [Cyclotomic polynomials](#cyclotomic-polynomials)
   * [as polynomials over the integers](#cyclotomic-polynomials-as-polynomials-over-the-integers)
   * [over fields](#cyclotomic-polynomials-over-fields)
   * [over finite fields](#cyclotomic-polynomials-over-finite-fields)
@@ -640,9 +640,12 @@ is no subgroup with order divisible by the characteristic.
 * Victor Shoup's [A Computational Introduction to Number Theory and Algebra](https://shoup.net/ntb/)
 * [FLINT](http://flintlib.org/development.html) Sage uses this for polynomial arithmetic factoring over <img alt="$\mathbb{Z}$" src="svgs/b9477ea14234215f4d516bad55d011b8.svg" valign=0.0px width="10.95894029999999pt" height="11.324195849999999pt"/>, <img alt="$\mathbb{Q}$" src="svgs/0f452ec0bcf578fa387e4857f80f03f4.svg" valign=-2.739730950000001px width="12.785434199999989pt" height="14.0639268pt"/>, and <img alt="$\mathbb{Z}/n\mathbb{Z}$" src="svgs/94d333ba0aaa5e9c8ce88690986075c2.svg" valign=-4.109589000000009px width="40.00396784999999pt" height="16.438356pt"/>.
 * Arnold and Monagan's article [Calculating Cyclotomic Polynomials](https://www.ams.org/journals/mcom/2011-80-276/S0025-5718-2011-02467-1/S0025-5718-2011-02467-1.pdf)
+* Brent's [On computing factors of cyclotomic polynomials](https://maths-people.anu.edu.au/~brent/pd/rpb135.pdf)
+* Cao and Cao's [Note on fast division algorithm for polynomials using Newton iteration](https://arxiv.org/pdf/1112.4014.pdf)
 
 ## Todo
-* Add option to **Polynomial**'s constructor to print in decreasing degree order.
+* Implement faster division algorithm (see Cao and Cao's paper linked to above).
 * Implement multivariate polynomials (use hash?)
+* Add option to **Polynomial**'s constructor to print in decreasing degree order.
 
 
