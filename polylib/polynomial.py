@@ -1042,7 +1042,7 @@ class Polynomial(Generic[Ring]):
         return hash(self._coeffs)
 
     def formalinv( self: Polynomial[Ring], maxdegree: int) -> Polynomial[Ring]:
-        """Formally (as series) invert self modulo  maxdegree+1.
+        """Return formal (as series) inverse of self modulo  maxdegree+1.
 
         >>> x = Polynomial([0,1])
         >>> print((1 - x).formalinv(5))
@@ -1080,6 +1080,21 @@ class Polynomial(Generic[Ring]):
 
         return self[0]*accum
 
+    def derivative( self: Polynomial[Ring]) -> Polynomial[Ring]:
+        """Return formal differentive of self.
+
+        Example:
+
+        >>> f = Polynomial([1,2,3,4])
+        >>> print(f)
+        1 + 2x + 3x^2 + 4x^3
+        >>> print(f.derivative())
+        2 + 6x + 12x^2
+        """
+        new_coeffs = []
+        for i in range(self.degree()):
+            new_coeffs.append((i+1)*self._coeffs[i+1])
+        return self.__class__(new_coeffs, self.x)
 
     def apply(self, function):
         """Return copy of self with coefficient mapped according to function."""
