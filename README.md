@@ -57,9 +57,9 @@ Equivalently, one can define polynomials in a more
 >>> print(p**5)  # 1 - 5x^2 + 10x^4 - 10x^6 + 5x^8 - x^10
 ```
 If you are working over a field, you may wish to use **FPolynomial**
-(the difference is that, in the **divmod**, **floordiv**, and **mod** methods, one
+&mdash; the difference is that, in the **divmod**, **floordiv**, and **mod** methods, one
 can divide an FPolynomial by any FPolynomial, whereas the divisor must be monic
-when dividing **Polynomial**s):
+when dividing **Polynomial**s.
 ```pycon
 >>> from fractions import Fraction as F
 >>> from polylib import FPolynomial
@@ -82,7 +82,7 @@ when dividing **Polynomial**s):
 >>> #If you just want the quotient:
 >>> print(p // p1)  # 5 + 5/2x + 5/3x^2 + 5/4x^3
 >>>
->>> #the remainder:
+>>> #or, just the remainder:
 >>> print(p % p1)  # 0
 ```
 Suppose we want a different name for the indeterminant:
@@ -92,7 +92,12 @@ Suppose we want a different name for the indeterminant:
 >>> t = Polynomial([0,1], 't')
 >>> p = 3 + 2*t + 4*t**3  # 3 + 2t + 4t^3
 ```
-#### (Optional) Working with polynomials in more than one variable
+#### Polynomials with polynomial coefficients
+
+This library does not robustly handle polynomials in more than one variable; however,
+when working, say, over finite fields, we often want polynomials with polynomial
+coefficients.
+
 We could do something like this:
 ```pycon
 >>> t = Polynomial([0, 1], 't')
@@ -111,13 +116,19 @@ but that is incorrect since
 ```
 This is what we want:
 ```pycon
->>> p = Polynomial([5-t, t**2+t-1, -2*t**0])  # note the multiplication by t**0
+>>> p = Polynomial([5-t, t**2+t-1, -2*t**0])  # note the use of t**0
 >>> print(p)  # (5 - t) + (-1 + t + t^2)x + (-2)x^2
 >>> p  # Polynomial((Polynomial((5, -1)), Polynomial((-1, 1, 1)), Polynomial((-2,))))
 ```
 Alternatively, of course, one can type
 ```pycon
 >>> p=Polynomial((Polynomial((5,-1),'(t)'),Polynomial((-1,1,1),'(t)'),Polynomial((-2,),'(t)')))
+```
+but this might be better:
+```pycon
+>>> p = (5-t) * x**0 + (t**2+t-1) * x - 2*t**0 * x**2  # note, now, both t**0 and x**0
+>>> print(p)
+(5 - t) + (-1 + t + t^2)x + (-2)x^2
 ```
 In some cases, wrapping in square brackets is more readable:
 ```pycon
