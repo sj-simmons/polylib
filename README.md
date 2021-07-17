@@ -87,6 +87,7 @@ when dividing **Polynomial**s.
 ```
 Suppose we want a different name for the indeterminant:
 ```pycon
+>>> from polylib import Polynomial
 >>> print(Polynomial([3, 4, 0, 2], 't'))  # 3 + 2t + 4t^3
 >>> # equivalently:
 >>> t = Polynomial([0,1], 't')
@@ -126,9 +127,21 @@ Alternatively, of course, one can type
 ```
 but this might be better:
 ```pycon
+>>> x = Polynomial([0, 1])
+>>> t = Polynomial([0, 1], '(t)')  # note the parentheses
 >>> p = (5-t) * x**0 + (t**2+t-1) * x - 2*t**0 * x**2  # note, now, both t**0 and x**0
 >>> print(p)
 (5 - t) + (-1 + t + t^2)x + (-2)x^2
+```
+These sorts of polynomials occur when working with elliptic curves over a finite field.
+Their string representations are more readable if the coefficient polynomials don't appear
+with spaces:
+```pycon
+>>> x = Polynomial([0, 1])
+>>> t = Polynomial([0, 1], '(t)', spaces=False)
+>>> p = (5-t) * x**0 + (t**2+t-1) * x - 2*t**0 * x**2  # note, now, both t**0 and x**0
+>>> print(p)
+(5-t) + (-1+t+t^2)x + (-2)x^2
 ```
 In some cases, wrapping in square brackets is more readable:
 ```pycon
