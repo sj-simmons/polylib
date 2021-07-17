@@ -1,4 +1,3 @@
-
 from .polynomial import Polynomial, FPolynomial
 from .utils import cyclotomic
 
