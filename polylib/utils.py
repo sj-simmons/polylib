@@ -78,13 +78,13 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
         >>> from polylib import Polynomial
         >>> from numlib import Zmod
         >>> GF = Zmod(17) # Z/17Z
-        >>> GF(1)*cyclotomic(2)
+        >>> cyclotomic(2) * GF(1)
         Polynomial((1 + <17>, 1 + <17>))
 
         In the last example, the coefficients are now in a field; so you
         may wish to recast to FPolynomial
 
-        >>> FPolynomial(GF(1)*cyclotomic(2))
+        >>> FPolynomial(cyclotomic(2) * GF(1))
         FPolynomial((1 + <17>, 1 + <17>))
 
         But you may be better off, speed-wise, to first compute in the
@@ -93,9 +93,9 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
         >>> poly  # doctest: +ELLIPSIS
         Polynomial((1, 1, 1, ...
         >>> #poly.apply(lambda coeff: Zmod(17)(coeff))
-        >>> Zmod(17)(1)*poly  # doctest: +ELLIPSIS
+        >>> poly * Zmod(17)(1)  # doctest: +ELLIPSIS
         Polynomial((1 + <17>, 1 + <17>, 1 + <17>, ...
-        >>> FPolynomial(Zmod(17)(1)*poly)  # doctest: +ELLIPSIS
+        >>> FPolynomial(poly * Zmod(17)(1))  # doctest: +ELLIPSIS
         FPolynomial((1 + <17>, 1 + <17>, 1 + <17>, ...
         >>> #cyclopoly = cyclotomic(2**12-1)
         >>> #cyclopoly.apply(lambda coeff: Zmod(17)(coeff))

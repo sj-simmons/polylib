@@ -702,9 +702,9 @@ class Polynomial(Generic[Ring]):
         """
         if self._degree is None or self.degree == 0 or x == 0 * self._coeffs[0]:
             return self._coeffs[0]
-        result = cast(Ring, 0) * self._coeffs[0]
-        for i in range(self._degree + 1):
-            result += self[i] * x ** i
+        result =  x ** self._degree * self._coeffs[-1]
+        for i in range(self._degree):
+            result += x ** i * self[i]
         return result
 
     def __str__(self: Polynomial[Ring], streamline: bool = True) -> str:
@@ -804,7 +804,10 @@ class Polynomial(Generic[Ring]):
                 streamline = False
             else:
                 elt_: DivisionRing_ = elt + 1 if elt == zero_ else elt
-                one: DivisionRing_ = elt_ / elt_
+                try:   # NOTE:  clean this up
+                    one: DivisionRing_ = elt_ / elt_
+                except:
+                    one: DivisionRing_ = elt_.__class__(1)
                 try:  # successful if coeffs are OrderedRing
                     elt_ < elt_  # type: ignore
                     zero: OrderedRing_ = zero_ * elt
@@ -1247,14 +1250,12 @@ class FPolynomial(Polynomial[Field]):
                 self.__class__([cast(Field, 0)], self.x, self.spaces),
             )
 
-        tup = super(FPolynomial, other[-1] ** (-1) * self).divmod(
-            other[-1] ** (-1) * other
-        )
+        tup = super(FPolynomial, self * other[-1] ** (-1)).divmod(other * other[-1] ** (-1))
 
         # should need to cast on next line?
         return (
             cast(FPolynomial[Field], tup[0]),
-            cast(FPolynomial[Field], other[-1] * tup[1]),
+            cast(FPolynomial[Field], tup[1] * other[-1]),
         )
 
     def __mod__(
@@ -1293,10 +1294,9 @@ class FPolynomial(Polynomial[Field]):
 
         return cast(
             FPolynomial[Field],
-            other[-1]
-            * super(FPolynomial, other[-1] ** (-1) * self).__mod__(
-                other[-1] ** (-1) * other
-            ),
+            super(FPolynomial, self * other[-1] ** (-1)).__mod__(
+                other * other[-1] ** (-1)
+            ) * other[-1],
         )
 
     def __repr__(self: FPolynomial[Field]) -> str:
