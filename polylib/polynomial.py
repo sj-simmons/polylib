@@ -192,6 +192,7 @@ class Polynomial(Generic[Ring]):
 
         3. self._coeffs is a tuple consisting of the coefficients of self.
     """
+    __slots__ = ('_coeffs', '_degree', 'x', 'spaces', 'increasing', 'x_unwrapped')
 
     def __init__(self: Polynomial[Ring], coeffs: Sequence[Ring], x: str = "x", spaces: bool = True, increasing: bool = True) -> None:
         """Create a Polynomial.
@@ -380,19 +381,21 @@ class Polynomial(Generic[Ring]):
 
     def _add(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
         """Addition helper."""
-        if self._degree is None:
+        selfdeg = self._degree; otherdeg = other._degree
+        selfcos = self._coeffs; othercos = other._coeffs
+        if selfdeg is None:
             return self.__class__(other._coeffs, self.x, self.spaces, self.increasing)
-        if other._degree is None:
+        if otherdeg is None:
             return self
-        mindeg = min([self._degree, other._degree])
+        mindeg = min([selfdeg, otherdeg])
         if mindeg == self._degree:
-            shorter = tuple(self._coeffs)
-            longer = tuple(other._coeffs)
+            shorter = tuple(selfcos)
+            longer = tuple(othercos)
         else:
-            shorter = tuple(other._coeffs)
-            longer = tuple(self._coeffs)
-        return self.__class__(
+            shorter = tuple(othercos)
+            longer = tuple(selfcos)
         #return other.__class__(
+        return self.__class__(
             tuple(shorter[i] + longer[i] for i in range(mindeg + 1))
             + longer[mindeg + 1 :],
             self.x,
@@ -485,22 +488,25 @@ class Polynomial(Generic[Ring]):
 
     def _mul(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
         """Multiplication helper."""
-        if self._degree is None or other._degree is None:
+
+        selfdeg = self._degree; otherdeg = other._degree
+        selfcos = self._coeffs; othercos = other._coeffs
+        if selfdeg is None or otherdeg is None:
             return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
         product: List[Ring] = []
 
         # See chapter 17, section 17.2, the section on vector convolutions in the
         # text Algorithms and Theory of Computation Handbook (1999) for the starting
         # point for deriving the algorithm below.
-        lowerdeg = min([self._degree, other._degree])
-        if self._degree == lowerdeg:
-            shorter = self._coeffs
-            longer = other._coeffs
-            higherdeg = other._degree
+        lowerdeg = min([selfdeg, otherdeg])
+        if selfdeg == lowerdeg:
+            shorter = selfcos
+            longer = othercos
+            higherdeg = otherdeg
         else:
-            shorter = other._coeffs
-            longer = self._coeffs
-            higherdeg = self._degree
+            shorter = othercos
+            longer = selfcos
+            higherdeg = selfdeg
         for i in range(higherdeg + 1):
             summa = cast(Ring, 0)
             if i <= lowerdeg:
@@ -804,10 +810,11 @@ class Polynomial(Generic[Ring]):
                 streamline = False
             else:
                 elt_: DivisionRing_ = elt + 1 if elt == zero_ else elt
-                try:   # NOTE:  clean this up
-                    one: DivisionRing_ = elt_ / elt_
-                except:
-                    one: DivisionRing_ = elt_.__class__(1)
+                one: DivisionRing_ = elt_ / elt_
+                #try:   # NOTE:  clean this up
+                #    one: DivisionRing_ = elt_ / elt_
+                #except:
+                #    one: DivisionRing_ = elt_.__class__(1)
                 try:  # successful if coeffs are OrderedRing
                     elt_ < elt_  # type: ignore
                     zero: OrderedRing_ = zero_ * elt
@@ -955,15 +962,16 @@ class Polynomial(Generic[Ring]):
         """
         return self._coeffs[n]
 
-    def __copy__(self: Polynomial[Ring]) -> Polynomial[Ring]:
-        new_instance = type(self)(self._coeffs)
-        new_instance.__dict__.update(self.__dict__)
-        return new_instance
+    #def __copy__(self: Polynomial[Ring]) -> Polynomial[Ring]:
+    #    new_instance = type(self)(self._coeffs)
+    #    #new_instance.__dict__.update(self.__dict__)
+    #    new_instance.__slots__ = self.__slots__
+    #    return new_instance
 
-    def __deepcopy__(self: Polynomial[Ring], memodict: dict = {}) -> Polynomial[Ring]:
-        new_instance = type(self)(copy.deepcopy(self._coeffs, memodict))
-        new_instance.__dict__.update(self.__dict__)
-        return new_instance
+    #def __deepcopy__(self: Polynomial[Ring], memodict: dict = {}) -> Polynomial[Ring]:
+    #    new_instance = type(self)(copy.deepcopy(self._coeffs, memodict))
+    #    new_instance.__dict__.update(self.__dict__)
+    #    return new_instance
 
     def divmod(
         self: Polynomial[Ring], other: Polynomial[Ring]
@@ -988,7 +996,9 @@ class Polynomial(Generic[Ring]):
             #raise ValueError(f"{other.x_unwrapped} != {self.x_unwrapped}")
             return NotImplemented
 
-        if other._degree is None:
+        otherdeg = other._degree
+
+        if otherdeg is None:
             raise ValueError("cannot divide by zero")
 
         assert (self[-1] - self[-1] * other[-1]) * (
@@ -1004,15 +1014,15 @@ class Polynomial(Generic[Ring]):
                 self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing),
             )
 
-        num = copy.deepcopy(self)
+        num = copy.copy(self)
         quo = Polynomial([cast(Ring, 0)], self.x, self.spaces, self.increasing)
 
-        if cast(int, num._degree) >= cast(int, other._degree):
-            while num._degree is not None and cast(int, num._degree) >= cast(
-                int, other._degree
-            ):
+        numdeg = num._degree
+
+        if cast(int, numdeg) >= cast(int, otherdeg):
+            while numdeg is not None and cast(int, numdeg) >= cast( int, otherdeg):
                 monomial = Polynomial(
-                    (cast(int, num._degree) - cast(int, other._degree))
+                    (cast(int, numdeg) - cast(int, otherdeg))
                     * [cast(Ring, 0)]
                     + [num[-1] * other[-1]], self.x, self.spaces, self.increasing
                 )
@@ -1020,6 +1030,7 @@ class Polynomial(Generic[Ring]):
                     Polynomial, num - monomial * other
                 )  # shouldn't have to cast here?
                 quo = cast(Polynomial, quo + monomial)
+                numdeg = num._degree
             return (
                 self.__class__(quo._coeffs, self.x, self.spaces, self.increasing),
                 self.__class__(num._coeffs, self.x, self.spaces, self.increasing),
@@ -1051,7 +1062,9 @@ class Polynomial(Generic[Ring]):
         if not (isinstance(other, Polynomial) and other.x_unwrapped == self.x_unwrapped):
             return NotImplemented
 
-        if other._degree is None:
+        otherdeg = other._degree
+
+        if otherdeg is None:
             raise ValueError("cannot divide by zero")
 
         if not isinstance(other, FPolynomial):
@@ -1063,20 +1076,20 @@ class Polynomial(Generic[Ring]):
         if self._degree is None:
             return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
 
-        num = copy.deepcopy(self)
+        num = copy.copy(self)
+        numdeg = num._degree
 
-        if cast(int, num._degree) >= cast(int, other._degree):
-            while num._degree is not None and cast(int, num._degree) >= cast(
-                int, other._degree
-            ):
+        if cast(int, numdeg) >= cast(int, otherdeg):
+            while numdeg is not None and cast(int, numdeg) >= cast(int, otherdeg):
                 monomial = Polynomial(
-                    (cast(int, num._degree) - cast(int, other._degree))
+                    (cast(int, numdeg) - cast(int, otherdeg))
                     * [cast(Ring, 0)]
                     + [num[-1] * other[-1]], self.x, self.spaces, self.increasing
                 )
                 num = cast(
                     Polynomial, num - monomial * other
                 )  # shouldn't have to cast here?
+                numdeg = num._degree
             return num
         else:
             return self
@@ -1194,6 +1207,7 @@ class FPolynomial(Polynomial[Field]):
     since we are working over a field, the denominator of the divisor
     in the divmod and __mod__ methods does not need to be monic.
     """
+    __slots__ = ()
 
     def __init__(
         self: FPolynomial[Field], coeffs: Sequence[Field], x: str = "x", spaces: bool = True, increasing: bool = True
