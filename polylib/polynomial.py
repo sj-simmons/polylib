@@ -368,40 +368,36 @@ class Polynomial(Generic[Ring]):
         if isinstance(other, Polynomial) and self.x_unwrapped == other.x_unwrapped:
             return self._add(other)
             #return other._add(self)
-        if isinstance(other, Ring_):
-            return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
-        return NotImplemented
+        #if isinstance(other, Ring_):
+        #else:
+        return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
+        #return NotImplemented
 
     def __radd__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse add."""
-        if isinstance(other, Ring_):
-            return self.__class__((other,), self.x, self.spaces, self.increasing)._add(self)
-            #return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
-        return NotImplemented
+        return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
+        #if isinstance(other, Ring_):
+        #    return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
+        #return NotImplemented
 
     def _add(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
         """Addition helper."""
         selfdeg = self._degree; otherdeg = other._degree
         selfcos = self._coeffs; othercos = other._coeffs
         if selfdeg is None:
-            return self.__class__(other._coeffs, self.x, self.spaces, self.increasing)
+            return other
         if otherdeg is None:
             return self
         mindeg = min([selfdeg, otherdeg])
-        if mindeg == self._degree:
-            shorter = tuple(selfcos)
-            longer = tuple(othercos)
+        if mindeg == selfdeg:
+            trailing = othercos[mindeg + 1 :]
         else:
-            shorter = tuple(othercos)
-            longer = tuple(selfcos)
-        #return other.__class__(
+            trailing = selfcos[mindeg + 1 :]
         return self.__class__(
-            tuple(shorter[i] + longer[i] for i in range(mindeg + 1))
-            + longer[mindeg + 1 :],
+            tuple(selfcos[i] + othercos[i] for i in range(mindeg + 1)) + trailing,
             self.x,
             self.spaces,
             self.increasing
-        #    other.x,
         )
 
     def __neg__(self: Polynomial[Ring]) -> Polynomial[Ring]:
@@ -437,10 +433,9 @@ class Polynomial(Generic[Ring]):
 
     def __rsub__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse subtract."""
-        if isinstance(other, Ring_):
-            return self.__class__((other,), self.x, self.spaces, self.increasing).__sub__(self)
-            #return self.__sub__(self.__class__((other,), self.x, self.spaces))
-        return NotImplemented
+        #if isinstance(other, Ring_):
+        return (- self).__add__(self.__class__((other,), self.x, self.spaces, self.increasing))
+        #return NotImplemented
 
     def __mul__(
         self: Polynomial[Ring], other: Union[Ring, Polynomial[Ring]]
@@ -469,22 +464,24 @@ class Polynomial(Generic[Ring]):
         if isinstance(other, Polynomial):
             if self.x_unwrapped == other.x_unwrapped:
                 return self._mul(other)
-                #return other._mul(self)
             else:
                 if other[-1] != other[-1]**0 and other[:-1] != 0:
                     return NotImplemented
                 else:
                     return other.__class__(other._degree * (0,) + (self,), other.x)
-        if isinstance(other, Ring_):
-            return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
-        return NotImplemented
+        #if isinstance(other, Ring_):
+        #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
+        return self.__class__(tuple(coef * other for coef in self._coeffs), self.x, self.spaces, self.increasing)
+        #return NotImplemented
 
     def __rmul__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse multiply."""
-        if isinstance(other, Ring_):
-            return self.__class__((other,), self.x, self.spaces, self.increasing)._mul(self)
-            #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
-        return NotImplemented
+
+        #if isinstance(other, Ring_):
+            #return self.__class__((other,), self.x, self.spaces, self.increasing)._mul(self)
+        #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
+        return self.__class__(tuple(coef * other for coef in self._coeffs), self.x, self.spaces, self.increasing)
+        #return NotImplemented
 
     def _mul(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
         """Multiplication helper."""
@@ -511,16 +508,16 @@ class Polynomial(Generic[Ring]):
             summa = cast(Ring, 0)
             if i <= lowerdeg:
                 for j in range(i + 1):
-                    summa += shorter[j] * longer[i - j]
+                    summa = shorter[j] * longer[i - j] + summa
                 product.append(summa)
             else:
                 for j in range(lowerdeg + 1):
-                    summa += shorter[j] * longer[i - j]
+                    summa = shorter[j] * longer[i - j] + summa
                 product.append(summa)
         for i in range(lowerdeg):
             summa_ = cast(Ring, 0)
             for j in range(i + 1, lowerdeg + 1):
-                summa_ += shorter[j] * longer[higherdeg + 1 + i - j]
+                summa_ = shorter[j] * longer[higherdeg + 1 + i - j] + summa_
             product.append(summa_)
         return self.__class__(product, self.x, self.spaces, self.increasing)
         #return other.__class__(product, other.x)
@@ -642,7 +639,7 @@ class Polynomial(Generic[Ring]):
         def recpow(p: Polynomial[Ring], n: int) -> Polynomial[Ring]:
             if n == 0:
                 return self.__class__(
-                    [cast(Ring, 0) * self[-1] + cast(Ring, 1)], self.x, self.spaces, self.increasing
+                    [ self[-1] * cast(Ring, 0) + cast(Ring, 1)], self.x, self.spaces, self.increasing
                 )
             else:
                 factor = recpow(p, n // 2)
@@ -1059,7 +1056,7 @@ class Polynomial(Generic[Ring]):
             0
         """
 
-        if not (isinstance(other, Polynomial) and other.x_unwrapped == self.x_unwrapped):
+        if not isinstance(other, Polynomial): #and other.x_unwrapped == self.x_unwrapped):
             return NotImplemented
 
         otherdeg = other._degree
@@ -1234,7 +1231,7 @@ class FPolynomial(Polynomial[Field]):
         super().__init__(coeffs, x, spaces, increasing)
 
     def divmod(
-        self: FPolynomial[Field], other: Polynomial[Field]
+        self: FPolynomial[Field], other: FPolynomial[Field]
     ) -> Tuple[FPolynomial[Field], ...]:
 
         """Return the quotient and remainder when dividing self by other.
@@ -1273,15 +1270,16 @@ class FPolynomial(Polynomial[Field]):
         )
 
     def __mod__(
-        self: FPolynomial[Field], other: Polynomial[Field]
+        self: FPolynomial[Field], other: FPolynomial[Field]
     ) -> FPolynomial[Field]:
 
         """Return the remainder when dividing self by other.
 
         Examples:
 
-            >>> numerator = FPolynomial((1, 0, 0, 0, -1))
-            >>> divisor = FPolynomial((1, -1))
+            >>> from fractions import Fraction
+            >>> numerator = FPolynomial((1, 0, 0, 0, Fraction(-1)))
+            >>> divisor = FPolynomial((1, Fraction(-1)))
             >>> print(numerator); print(divisor)
             1 - x^4
             1 - x
@@ -1308,9 +1306,7 @@ class FPolynomial(Polynomial[Field]):
 
         return cast(
             FPolynomial[Field],
-            super(FPolynomial, self * other[-1] ** (-1)).__mod__(
-                other * other[-1] ** (-1)
-            ) * other[-1],
+            super(FPolynomial, self * other[-1] ** (-1)).__mod__(other * other[-1] ** (-1)) * other[-1]
         )
 
     def __repr__(self: FPolynomial[Field]) -> str:
