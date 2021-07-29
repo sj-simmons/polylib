@@ -221,19 +221,17 @@ class Polynomial(Generic[Ring]):
 
         Examples:
 
-            >>> p = Polynomial([-1, 2, -3, 0, .4, 0])
+            >>> p = Polynomial([-1, 2, -3, 0, 4, 0])
             >>> print(p)
-            -1 + 2x - 3x^2 + 0.4x^4
+            -1 + 2x - 3x^2 + 4x^4
             >>> print(p.degree())
             4
             >>> p
-            Polynomial((-1, 2, -3, 0.0, 0.4))
+            Polynomial((-1, 2, -3, 0, 4))
             >>> p[2]
             -3
             >>> p[1:] # Note that this is not an instance of Polynomial
-            (2, -3, 0.0, 0.4)
-            >>> print(Polynomial((0,) + p[1:]))
-            2x - 3x^2 + 0.4x^4
+            (2, -3, 0, 4)
 
             >>> Polynomial(())
             Traceback (most recent call last):
@@ -279,7 +277,6 @@ class Polynomial(Generic[Ring]):
             >>> print(Polynomial([4*t**0-5*t, 3*t**3+t**4]))
             -5t + 4 + t^4 + 3t^3x
             >>> # str representation on the last line is ambiguous
-
             >>> t = Polynomial([0, 1], x='(t)')   # wrap the coefficient polys
             >>> print(Polynomial([4*t**0-5*t, 3*t**3+t**4]))  # use t**0 for 1
             (4-5t) + (3t^3+t^4)x
@@ -289,24 +286,17 @@ class Polynomial(Generic[Ring]):
             >>> print(p)
             [(-5-4j)t + (4+0j)] + [(3+0j)t^3]x
 
-            >>> t = Polynomial([0, 1], x='[t]')  # use capital x
+            >>> t = Polynomial([0, 1], x='[t]')
             >>> p=Polynomial([complex(4)*t**0-complex(5,4)*t,complex(3)*t**3],'X')
             >>> print(p)
             [(4+0j) + (-5-4j)t] + [(3+0j)t^3]X
 
             >>> x = Polynomial([0, 1])
             >>> t = Polynomial([0, 1], '(t)')
-            >>> x * t
-            Polynomial((Polynomial((0,)), Polynomial((0, 1))))
-            >>> #print(x*t)
-
-            >>> x + t
-            Polynomial((Polynomial((0, 1)), 1))
+            >>> print(t * x ** 0 + (t**2) * x)
+            (t) + (t^2)x
             >>> print(x + t)
             (t) + x
-
-            >>> t + x
-            Polynomial((Polynomial((0, 1)), 1))
             >>> print(t + x)
             (x + t)
 
@@ -315,7 +305,6 @@ class Polynomial(Generic[Ring]):
             Polynomial((Polynomial((1, 2)), Polynomial((0, 3, 4))))
             >>> print(p)
             (1+2t) + (3t+4t^2)x
-
         """
         if len(coeffs) == 0:
             raise ValueError("coeffs cannot be empty")
@@ -353,9 +342,9 @@ class Polynomial(Generic[Ring]):
             self._degree = index
         else:
             self._degree = None if coeffs[0] == coeffs[0] - coeffs[0] else 0
-        coeffs = [
-            cast(Ring, 0) * coeffs[-1] if coeff == 0 else coeff for coeff in coeffs
-        ]
+        #coeffs = [
+        #    cast(Ring, 0) * coeffs[-1] if coeff == 0 else coeff for coeff in coeffs
+        #]
         self._coeffs: Sequence[Ring] = tuple(coeffs)
 
     def __add__(
