@@ -332,10 +332,23 @@ class Polynomial(Generic[Ring]):
 
         self._degree: Optional[int]
 
-        index = len(coeffs) - 1  # the index of the last nonzero coefficient
-        while index > 0 and coeffs[index] == 0:
+        index = len(coeffs) - 1  # will be the index of the last nonzero coeff
+        while index > 0 and coeffs[index] == 0:  # remove zeros
             coeffs = coeffs[:index]
+            #coeffs = coeffs[:-1]
             index -= 1
+
+        # slower
+        #index = len(coeffs) - 1  # will be the index of the last nonzero coeff
+        #while index > 0 and coeffs[index] == 0:  # remove zeros
+        #    index -= 1
+        #coeffs = coeffs[:index+1]
+
+        # about same as first way
+        #while len(coeffs) > 1 and coeffs[-1] == 0:
+        #      coeffs = coeffs[:-1]
+        #index = len(coeffs) - 1
+
         if index > 0:
             self._degree = index
         else:
@@ -366,39 +379,32 @@ class Polynomial(Generic[Ring]):
             4.5 + 4x + 3x^2
         """
         if isinstance(other, Polynomial) and self.x_unwrapped == other.x_unwrapped:
-            return self._add(other)
-            #return other._add(self)
-        #if isinstance(other, Ring_):
-        #else:
-        return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
-        #return NotImplemented
+            selfdeg = self._degree; otherdeg = other._degree
+            selfcos = self._coeffs; othercos = other._coeffs
+            if selfdeg is None:
+                return other
+            if otherdeg is None:
+                return self
+            mindeg = min([selfdeg, otherdeg])
+            if mindeg == selfdeg:
+                return self.__class__(
+                    tuple(selfcos[i] + othercos[i] for i in range(mindeg + 1)) + othercos[mindeg + 1 :],
+                    self.x,
+                    self.spaces,
+                    self.increasing
+                )
+            else:
+                return self.__class__(
+                    tuple(selfcos[i] + othercos[i] for i in range(mindeg + 1)) + selfcos[mindeg + 1 :],
+                    self.x,
+                    self.spaces,
+                    self.increasing
+                )
+        return self.__class__((self[0] + other,)+self[1:], self.x, self.spaces, self.increasing)
 
     def __radd__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse add."""
-        return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
-        #if isinstance(other, Ring_):
-        #    return self._add(self.__class__((other,), self.x, self.spaces, self.increasing))
-        #return NotImplemented
-
-    def _add(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
-        """Addition helper."""
-        selfdeg = self._degree; otherdeg = other._degree
-        selfcos = self._coeffs; othercos = other._coeffs
-        if selfdeg is None:
-            return other
-        if otherdeg is None:
-            return self
-        mindeg = min([selfdeg, otherdeg])
-        if mindeg == selfdeg:
-            trailing = othercos[mindeg + 1 :]
-        else:
-            trailing = selfcos[mindeg + 1 :]
-        return self.__class__(
-            tuple(selfcos[i] + othercos[i] for i in range(mindeg + 1)) + trailing,
-            self.x,
-            self.spaces,
-            self.increasing
-        )
+        return self.__class__((self[0] + other,)+self[1:], self.x, self.spaces, self.increasing)
 
     def __neg__(self: Polynomial[Ring]) -> Polynomial[Ring]:
         """Return the negative of a Polynomial.
@@ -409,7 +415,7 @@ class Polynomial(Generic[Ring]):
             >>> print(-p)
             -2x - 3x^2
         """
-        return self.__class__([-x for x in self._coeffs], self.x, self.spaces, self.increasing)
+        return self.__class__([-co for co in self._coeffs], self.x, self.spaces, self.increasing)
 
     def __sub__(self: Polynomial[Ring], other: Union[Ring, Polynomial[Ring]]) -> Polynomial[Ring]:
         """Return the difference of two Polynomials.
@@ -434,7 +440,8 @@ class Polynomial(Generic[Ring]):
     def __rsub__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse subtract."""
         #if isinstance(other, Ring_):
-        return (- self).__add__(self.__class__((other,), self.x, self.spaces, self.increasing))
+        #return (- self).__add__(self.__class__((other,), self.x, self.spaces, self.increasing))
+        return self.__class__((-self[0] + other,)+tuple(-co for co in self._coeffs[1:]), self.x, self.spaces, self.increasing)
         #return NotImplemented
 
     def __mul__(
@@ -463,12 +470,64 @@ class Polynomial(Generic[Ring]):
         """
         if isinstance(other, Polynomial):
             if self.x_unwrapped == other.x_unwrapped:
-                return self._mul(other)
-            else:
-                if other[-1] != other[-1]**0 and other[:-1] != 0:
-                    return NotImplemented
+                selfdeg = self._degree; otherdeg = other._degree
+                selfcos = self._coeffs; othercos = other._coeffs
+                if selfdeg is None or otherdeg is None:
+                    return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
+                product: List[Ring] = []
+                # See chapter 17, section 17.2, the section on vector convolutions in the
+                # text Algorithms and Theory of Computation Handbook (1999) for the starting
+                # point for deriving the algorithm below.
+                lowerdeg = min([selfdeg, otherdeg])
+                if selfdeg == lowerdeg:
+                    shorter = selfcos
+                    longer = othercos
+                    higherdeg = otherdeg
                 else:
-                    return other.__class__(other._degree * (0,) + (self,), other.x)
+                    shorter = othercos
+                    longer = selfcos
+                    higherdeg = selfdeg
+                for i in range(higherdeg + 1):
+                    summa = cast(Ring, 0)
+                    if i <= lowerdeg:
+                        for j in range(i + 1):
+                            summa = shorter[j] * longer[i - j] + summa
+                        product.append(summa)
+                    else:
+                        for j in range(lowerdeg + 1):
+                            summa = shorter[j] * longer[i - j] + summa
+                        product.append(summa)
+                for i in range(lowerdeg):
+                    summa_ = cast(Ring, 0)
+                    for j in range(i + 1, lowerdeg + 1):
+                        summa_ = shorter[j] * longer[higherdeg + 1 + i - j] + summa_
+                    product.append(summa_)
+                return self.__class__(product, self.x, self.spaces, self.increasing)
+
+                ##Similar to the above algorithm but uses zero padding. Slightly slower,
+                ##in general.
+                # n = max([self._degree, other._degree])
+                # if other._degree == n:
+                #    lst1 = list(self) + (n - self._degree) * [0]
+                #    lst2 = list(other)
+                # else:
+                #    lst1 = list(other) + (n - other._degree) * [0]
+                #    lst2 = list(self)        # lst1 and lst2 both now have length n.
+                # product = []
+                # for i in range(n+1):         # compute the first n+1 coefficients of
+                #    summ = 0                 # of the product.
+                #    for j in range(i+1):
+                #        summ += lst1[j] * lst2[i-j]
+                #    product.append(summ)
+                # for i in range(n):         # compute the rest of the coefficients of
+                #    summ = 0                 # of the product of an n degree poly and
+                #    for j in range(i+1,n+1): # a zero-padded n degree poly.
+                #        summ += lst1[j] * lst2[n+1+i-j]
+                #    product.append(summ)
+                # return self.__class__(product, self.x, self.spaces, self.increasing)
+            if other[-1] != other[-1]**0 and other[:-1] != 0:
+                return NotImplemented
+            return other.__class__(other._degree * (0,) + (self,), other.x)
         #if isinstance(other, Ring_):
         #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
         return self.__class__(tuple(coef * other for coef in self._coeffs), self.x, self.spaces, self.increasing)
@@ -482,67 +541,6 @@ class Polynomial(Generic[Ring]):
         #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
         return self.__class__(tuple(coef * other for coef in self._coeffs), self.x, self.spaces, self.increasing)
         #return NotImplemented
-
-    def _mul(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
-        """Multiplication helper."""
-
-        selfdeg = self._degree; otherdeg = other._degree
-        selfcos = self._coeffs; othercos = other._coeffs
-        if selfdeg is None or otherdeg is None:
-            return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
-        product: List[Ring] = []
-
-        # See chapter 17, section 17.2, the section on vector convolutions in the
-        # text Algorithms and Theory of Computation Handbook (1999) for the starting
-        # point for deriving the algorithm below.
-        lowerdeg = min([selfdeg, otherdeg])
-        if selfdeg == lowerdeg:
-            shorter = selfcos
-            longer = othercos
-            higherdeg = otherdeg
-        else:
-            shorter = othercos
-            longer = selfcos
-            higherdeg = selfdeg
-        for i in range(higherdeg + 1):
-            summa = cast(Ring, 0)
-            if i <= lowerdeg:
-                for j in range(i + 1):
-                    summa = shorter[j] * longer[i - j] + summa
-                product.append(summa)
-            else:
-                for j in range(lowerdeg + 1):
-                    summa = shorter[j] * longer[i - j] + summa
-                product.append(summa)
-        for i in range(lowerdeg):
-            summa_ = cast(Ring, 0)
-            for j in range(i + 1, lowerdeg + 1):
-                summa_ = shorter[j] * longer[higherdeg + 1 + i - j] + summa_
-            product.append(summa_)
-        return self.__class__(product, self.x, self.spaces, self.increasing)
-        #return other.__class__(product, other.x)
-
-        ##Similar to the above algorithm but uses zero padding. Slightly slower,
-        ##in general.
-        # n = max([self._degree, other._degree])
-        # if other._degree == n:
-        #    lst1 = list(self) + (n - self._degree) * [0]
-        #    lst2 = list(other)
-        # else:
-        #    lst1 = list(other) + (n - other._degree) * [0]
-        #    lst2 = list(self)        # lst1 and lst2 both now have length n.
-        # product = []
-        # for i in range(n+1):         # compute the first n+1 coefficients of
-        #    summ = 0                 # of the product.
-        #    for j in range(i+1):
-        #        summ += lst1[j] * lst2[i-j]
-        #    product.append(summ)
-        # for i in range(n):         # compute the rest of the coefficients of
-        #    summ = 0                 # of the product of an n degree poly and
-        #    for j in range(i+1,n+1): # a zero-padded n degree poly.
-        #        summ += lst1[j] * lst2[n+1+i-j]
-        #    product.append(summ)
-        # return self.__class__(product, self.x, self.spaces, self.increasing)
 
     def fftmult(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
         """Return the product of two polynomials, computed using (numpy's) FFT.
@@ -678,29 +676,28 @@ class Polynomial(Generic[Ring]):
 
         return fftrecpow(self, n)
 
-    def of(self: Polynomial[Ring], x: Ring) -> Ring:
+    def __call__(self: Polynomial[Ring], x: Ring) -> Ring:
         """Return the result of evaluating a Polynomial on a number.
 
         Examples:
 
             >>> p = Polynomial([1, 17, -1])
-            >>> print(p.of(1))
+            >>> print(p(1))
             17
-            >>> f = p.of
-            >>> f(-1)
+            >>> p(-1)
             -17
-            >>> f(3)
+            >>> p(3)
             43
 
-            >>> Polynomial([0]).of(3)
+            >>> Polynomial([0])(3)
             0
 
-            >>> Polynomial((complex(0),)).of(3)
+            >>> Polynomial((complex(0),))(3)
             0j
 
             We can also compose polynomials:
             >>> p = Polynomial([1, 2])  # 1 + 2x
-            >>> print(p.of(p))
+            >>> print(p(p))
             3 + 4x
         """
         if self._degree is None or self.degree == 0 or x == 0 * self._coeffs[0]:

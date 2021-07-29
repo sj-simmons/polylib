@@ -68,9 +68,9 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
         >>> from polylib import FPolynomial
         >>> from fractions import Fraction
         >>> x = FPolynomial([0, Fraction(1)]) # an indeterminant for Q[x]
-        >>> print(cyclotomic(2).of(x))
+        >>> print(cyclotomic(2)(x))
         1 + x
-        >>> print(repr(cyclotomic(2).of(x)))
+        >>> print(repr(cyclotomic(2)(x)))
         FPolynomial((Fraction(1, 1), Fraction(1, 1)))
 
         If you want to reduce the coefficients modulo n:
