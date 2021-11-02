@@ -17,18 +17,105 @@ striking assemblage of pure and applied Math and CS.
 
 TLDR; this is not Sh*tcoin 101 (which can be found on Youtube, TikTok and
 elsewhere); rather, this course is about new takes on exceptionally powerful
-mathematics. And remember, always, to please use your math skills for good,
+mathematics. And remember always to please use your math skills for good,
 not for ill.
 
 ## Topics
 
-#### Cryptography
+### Getting started
 
-* ECC
+* First install [polylib](https://github.com/sj-simmons/polylib).
+* Then install [numlib](https://github.com/sj-simmons/numlib).
+
+### Cryptography
+
+#### Large primes
+
+We will need some prime numbers that are fairly large  &mdash; 200 bits, say, for now; so primes of size
+around <img alt="$2^{200}.$" src="svgs/8ead495e1e0f713f33e7a75e00656907.svg" valign=0.0px width="33.264976799999985pt" height="13.380876299999999pt"/>
+
+One way to generate such a prime would be to iterate through numbers larger that <img alt="$2^{200}$" src="svgs/acc9da0b19643e432619eb386d21261f.svg" valign=0.0px width="27.87685064999999pt" height="13.380876299999999pt"/> until we
+find one that is prime.  Alternatively, one could randomly generate sequences of zeros and ones of
+length 200 and check if the corresponding decimal number is prime.  Python has a built-in function that
+generates an integer from random bits:
+
+```python
+import random
+decimal = random.getrandbits(200)
+```
+Of course, depending on whether the most significant random bit was zero or one, we might get a number somewhat
+less than <img alt="$2^{200};$" src="svgs/e46661a0be2003a6fba87fa4a557cf10.svg" valign=-3.1963503000000086px width="33.264976799999985pt" height="16.5772266pt"/> so let us set the most significant bit to one and, while we are at it, set
+the least significant bit also equal to 1 since primes beyond 2 must be odd:
+```python
+decimal |= (1 << numbits - 1) | 1
+```
+The variable **decimal** is now an integer whose binary representation has length 200 and both begins
+and ends with 1; i.e., **decimal** is a random (depending on the robustness of **getrandbits**)
+integer strictly between <img alt="$2^{200}$" src="svgs/acc9da0b19643e432619eb386d21261f.svg" valign=0.0px width="27.87685064999999pt" height="13.380876299999999pt"/> and <img alt="$2^{201}.$" src="svgs/26851296087784570cb81e1034cdb3f0.svg" valign=0.0px width="33.264976799999985pt" height="13.380876299999999pt"/>
+
+Beyond using the fact that a prime larger than 2 must be odd, there are various other quick ways
+to test whether a candidate odd integer <img alt="$n$" src="svgs/55a049b8f161ae7cfeb0197d75aff967.svg" valign=0.0px width="9.86687624999999pt" height="7.0776222pt"/> is *likely* a prime.  These include
+[Fermat's primality test](https://en.wikipedia.org/wiki/Fermat_primality_test) which checks to see
+if <img alt="$n$" src="svgs/55a049b8f161ae7cfeb0197d75aff967.svg" valign=0.0px width="9.86687624999999pt" height="7.0776222pt"/> *acts like* a prime: namely, whether <img alt="$a^{n-1} \equiv 1 \mod n$" src="svgs/d366fecb67ec763d517425469c45fd90.svg" valign=0.0px width="122.41226084999998pt" height="13.380876299999999pt"/> for <img alt="$a$" src="svgs/44bc9d542a92714cac84e01cbbb7fd61.svg" valign=0.0px width="8.68915409999999pt" height="7.0776222pt"/> equal,
+in turn, to say 2, 3, and 5, as would be the case, by Fermat's Little Theorem, if <img alt="$n$" src="svgs/55a049b8f161ae7cfeb0197d75aff967.svg" valign=0.0px width="9.86687624999999pt" height="7.0776222pt"/> were in fact prime.
+
+Rather than implement Fermat's and related primality tests yourself to detect whether **decimal** is prime,
+feel free to use [numlib](https://github.com/sj-simmons/numlib)'s implementation:
+
+```python
+import numlib
+numlib.isprime(decimal)
+```
+Exercise 1: Replace the <img alt="$200$" src="svgs/88db9c6bd8c9a0b1527a1cedb8501c55.svg" valign=0.0px width="24.657628049999992pt" height="10.5936072pt"/> above with say <img alt="$k$" src="svgs/63bb9849783d01d91403bc9a5fea12a2.svg" valign=0.0px width="9.075367949999992pt" height="11.4155283pt"/> and write a function that returns a <img alt="$k$" src="svgs/63bb9849783d01d91403bc9a5fea12a2.svg" valign=0.0px width="9.075367949999992pt" height="11.4155283pt"/>-bit prime.
+
+At issue is the fact that larger primes are harder to find. The difficulty is gauged by the prime
+number theorem.  If we define <img alt="$\pi(n)$" src="svgs/ab6b1f726144febfe19f0c5d987822fa.svg" valign=-4.109589000000009px width="32.61239849999999pt" height="16.438356pt"/> to be the number of primes less than or equal to <img alt="$n$" src="svgs/55a049b8f161ae7cfeb0197d75aff967.svg" valign=0.0px width="9.86687624999999pt" height="7.0776222pt"/>, then
+the prime number theorem states that <img alt="$\pi(n)$" src="svgs/ab6b1f726144febfe19f0c5d987822fa.svg" valign=-4.109589000000009px width="32.61239849999999pt" height="16.438356pt"/> is well-approximated by <img alt="$n/\ln(n)$" src="svgs/9bbe784fa51a44e5989bc0b2cac489c3.svg" valign=-4.109589000000009px width="57.17672729999999pt" height="16.438356pt"/> in the sense that
+<p align="center"><img alt="$$\lim_{n\rightarrow\infty}\pi(n)\cdot\ln(n)/n=1.$$" src="svgs/bbbfdbd8c7959c658b17fe94615640ac.svg" valign=0.0px width="170.7003078pt" height="22.1917806pt"/></p>
+
+The prime number theorem implies that the number of primes between <img alt="$2^k$" src="svgs/91f4e50a1561b60d45e7079ca70f2ed4.svg" valign=0.0px width="15.48523844999999pt" height="13.95621975pt"/> and <img alt="$2^{k+1}$" src="svgs/bf56939689dfdac754c6e27725da93c9.svg" valign=0.0px width="32.12915969999999pt" height="13.95621975pt"/>
+is approximately
+
+<p align="center"><img alt="$$\frac{2^{k+1}}{\ln(2^{k+1})}-\frac{2^{k}}{\ln(2^{k})}=\frac{2^k}{\ln(2)}\left(\frac{2}{k+1}-\frac{1}{k}\right)=\frac{2^k}{\ln(2)}\frac{k-1}{k(k+1)};$$" src="svgs/ee03776f623d8b1c2733d4ee1290e882.svg" valign=0.0px width="418.50896339999997pt" height="40.6935375pt"/></p>
+
+hence, the probability of a randomly chosen number between <img alt="$2^k$" src="svgs/91f4e50a1561b60d45e7079ca70f2ed4.svg" valign=0.0px width="15.48523844999999pt" height="13.95621975pt"/> and <img alt="$2^{k+1}$" src="svgs/bf56939689dfdac754c6e27725da93c9.svg" valign=0.0px width="32.12915969999999pt" height="13.95621975pt"/> being
+prime is approximately <img alt="$p = (k-1)/(\ln(2)k(k+1))\approx 1/(ln(2)k).$" src="svgs/8a69b5df042e9317a0458345b0d88fc2.svg" valign=-4.109589000000009px width="296.1968427pt" height="16.438356pt"/>
+It is an elementary fact from probability theory that, one average, one must test
+<img alt="$1/p=\ln(2)k$" src="svgs/d3ae945c3802db1b078977a80a90f615.svg" valign=-4.109589000000009px width="90.40530014999999pt" height="16.438356pt"/> numbers before turning one up that is in fact prime.
+
+Exercise 2: Write a program that verifies the expected number of tries before your
+your function from exercise 1 is about 
+
+
+
+### Public-key Cryptography
+
+In modern times, you can create and publish (on, say, your personal webpage) a *public key* that
+can then be used (by, say, someone called Athena) to encrypt a private message to you.  You can decrypt
+Athena's message but no else can, so it doesn't matter if a bad actor sees Athena's encrypted message
+that she is sending to you.
+
+Important: since your enciphering key is public, a bad actor might try to intercept Athena's message
+and replace it with a malicious message encrypted with your public key.  We need to bar against it
+but, for now, let us ignore that weakness.
+
+To determine your public key, you first choose two large primes <img alt="$p$" src="svgs/2ec6e630f199f589a2402fdf3e0289d5.svg" valign=-3.1963502999999895px width="8.270567249999992pt" height="10.2739725pt"/> and <img alt="$q$" src="svgs/d5c18a8ca1894fd3a7d25f242cbe8890.svg" valign=-3.1963502999999895px width="7.928106449999989pt" height="10.2739725pt"/> (which you will keep
+secret) and multiply them together.  Your public key is the pair of numbers <img alt="$(e, n)$" src="svgs/1ea602d667e6403959572fffbd4671bc.svg" valign=-4.109589000000009px width="37.61233079999999pt" height="16.438356pt"/> where <img alt="$n=pq$" src="svgs/dd91a3c974e35acb9bfc9b9833a127b8.svg" valign=-3.1963502999999895px width="47.98317974999999pt" height="10.2739725pt"/>
+and <img alt="$e$" src="svgs/8cd34385ed61aca950a6b06d09fb50ac.svg" valign=0.0px width="7.654137149999991pt" height="7.0776222pt"/> a positive integer relatively prime to <img alt="$\phi(n)=(p-1)*(q-1)$" src="svgs/5d28570761d98da2134694296c4ca9e6.svg" valign=-4.109589000000009px width="168.27977264999998pt" height="16.438356pt"/>.
+
+Now suppose that <img alt="$M$" src="svgs/fb97d38bcc19230b0acd442e17db879c.svg" valign=0.0px width="17.73973739999999pt" height="11.232861749999998pt"/> is a positive integer representing you version 
+If <img alt="$M$" src="svgs/fb97d38bcc19230b0acd442e17db879c.svg" valign=0.0px width="17.73973739999999pt" height="11.232861749999998pt"/> is the numeric version of your message, then we encrypt 
+
+Now, in order for you to decrypt Athena's message you must (see below) derive your
+So how is it that your public key can't be reverse engineered by a bad actor
+
+And example
+
+* ECC (Elliptic Curve Cryptography
   * [A gentle intro to ECC](https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/)
   * Neal Koblitz's 1985 paper [Elliptic Curve Cryptosystems](https://www.ams.org/journals/mcom/1987-48-177/S0025-5718-1987-0866109-5/S0025-5718-1987-0866109-5.pdf)
 
-* Relevant
+* Potentially relevant
   * MC Frontalot's [Secrets of the future](https://www.youtube.com/watch?v=FUPstXCqyus)
 
 #### Cryptocurrencies
