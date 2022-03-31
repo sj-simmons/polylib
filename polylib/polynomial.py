@@ -15,9 +15,9 @@
 
  Notes on typing:
 
- This is type-hinted throughout (which does not provide mammoth utility). To
- demonstrate what one can in fact do, if you create the following program and
- call it test_typing.py:
+ This is type-hinted throughout (which does not provide significant utility).
+ To demonstrate what one can do, if you create the following program and call
+ it test_typing.py:
 
      from polylib import Polynomial
      p = Polynomial(['adsf','ghj'])
@@ -39,7 +39,7 @@
 
      p = FPolynomial([1, 2, 3]) # type is polynomial.FPolynomial[builtin.int*]
 
- this is due to the fact that Python's int implements (true) division (return-
+ This is due to the fact that Python's int implements (true) division (return-
  ing a float).  (Currently, mypy's Protocol types just check for the existence
  of a __truediv__ method not its type signature.)
 
@@ -65,7 +65,8 @@
 
 from __future__ import annotations
 import copy
-from typing import Sequence, Union, Tuple, List, Optional, cast, TypeVar, Generic
+from collections.abc import Sequence
+from typing import Union, Tuple, List, Optional, cast, TypeVar, Generic, Any
 import sys
 if sys.version_info >= (3, 8):
     from typing import Protocol
@@ -97,51 +98,24 @@ __copyright__ = """
 """
 __license__ = "Apache 2.0"
 
-
-@runtime
-class Ring_(Protocol):
-
-    """The minimal operations that we require for a ring.
-
-    This in only used for structural typing purposes.
-    """
-
-    def __add__(self, other):
-        ...
-
-    def __neg__(self):
-        ...
-
-    def __sub__(self, other):
-        ...
-
-    def __mul__(self, other):
-        ...
-
-    def __pow__(self, n):
-        ...
-
-
-@runtime
-class OrderedRing_(Ring_, Protocol):
-
-    """A totally ordered ring."""
-
-    def __gt__(self, other) -> bool:
-        ...
-
-    def __lt__(self, other) -> bool:
-        ...
-
-
-@runtime
-class DivisionRing_(Ring_, Protocol):
-
-    """A ring invertible non-zero elements (possibly noncommutative)."""
-
-    def __truediv__(self, other):
-        ...
-
+# Don't need this:
+#
+#SemiGroup = TypeVar('SemiGroup', bound='SemiGroup_')
+#
+#@runtime
+#class SemiGroup_(Protocol):
+#
+#    """The minimal, concatable, sequence-like object for coefficients."""
+#
+#    def __add__(self: SemiGroup, other: SemiGroup) -> SemiGroup:
+#        """This needs to implement concatenation."""
+#        ...
+#
+#    def __len__(self: SemiGroup) -> int:
+#        ...
+#
+#    def __getitem__(self: SemiGroup, key: Any) -> Any:
+#        ...
 
 Ring = TypeVar("Ring", bound="Ring_")
 
@@ -151,6 +125,45 @@ Ring = TypeVar("Ring", bound="Ring_")
 # The issue is that Python typing can't figure out subclasses of Polynomial.
 # P = TypeVar('P', bound='Polynomial')
 
+@runtime
+class Ring_(Protocol):
+
+    """The minimal operations that we require for a ring."""
+
+    def __add__(self: Ring, other: Ring) -> Ring:
+        ...
+
+    def __neg__(self: Ring) -> Ring:
+        ...
+
+    def __sub__(self: Ring, other: Ring) -> Ring:
+        ...
+
+    def __mul__(self: Ring, other: Ring) -> Ring:
+        ...
+
+    def __pow__(self: Ring, n: int) -> Ring:
+        ...
+
+
+@runtime
+class OrderedRing_(Ring_, Protocol):
+
+    """A totally ordered ring."""
+
+    def __gt__(self: Ring, other: Ring) -> bool:
+        ...
+
+    def __lt__(self: Ring, other: Ring) -> bool:
+        ...
+
+@runtime
+class DivisionRing_(Ring_, Protocol):
+
+    """A ring invertible non-zero elements (possibly noncommutative)."""
+
+    def __truediv__(self: Ring, other: Ring) -> Ring:
+        ...
 
 class Polynomial(Generic[Ring]):
 
@@ -161,8 +174,8 @@ class Polynomial(Generic[Ring]):
 
     Notes:
 
-      The coefficients can be in any implementation of a ring, possibly non-
-      commutative and without 1, though
+      The coefficients can be in any implementation of a (single) ring,
+      possibly noncommutative and without 1, though
 
          - said implementation of coefficients must coerce (right) addition
            of an element by the int 0.
@@ -172,15 +185,17 @@ class Polynomial(Generic[Ring]):
          - TODO: define a non-commutative ring and verify that rmul, etc.
            is not in reality assuming commutativity (and fix, if necessary).
 
-      Trailing zero terms of polynomials are stripped away upon instantiation.
+      Trailing zero (higher degree) terms of polynomials are stripped away
+      upon instantiation.
 
       Polynomial([0]), where 0 is the zero from the coefficient ring, is the
       zero polynomial; for which p.degree() returns, and p._degree is, None.
 
       A non-zero constant polynomial has degree 0.
 
-      The argument to Polynomial() should be a non-empty Sequence such as a
-      list or a tuple.
+      The argument to Polynomial() should be a non-empty instance of an ob-
+      ject of type Sequence (such as a list or a tuple) that implements
+      concatenation with __add__,
 
       Be careful: __eq__ is just comparison of tuples which may not be what
       the user wants on the level of polynomials; and, similarly, regarding
@@ -188,7 +203,7 @@ class Polynomial(Generic[Ring]):
 
       All polynomial operations (addition, multiplication, etc.) return in-
       stances of the same type as self; that is, a Polynomial or a possibly
-      a subclass of Polynomial if in fact this class has been extended.
+      a subclass of Polynomial such FPolynomial.
     """
 
     """Implementation notes:
@@ -215,19 +230,22 @@ class Polynomial(Generic[Ring]):
     def __init__(self: Polynomial[Ring], coeffs: Sequence[Ring], x: str = "x", spaces: bool = True, increasing: bool = True) -> None:
         """Create a Polynomial.
 
-        Polynomial([a_0,a_1,...,a_n]) or Polynomial((a_0,a_1,...,a_n)) con-
-        structs the polynomial a_0 + a_1 x + ... + a_n x^n.  In either case,
-        the coefficients will be an indexed tuple.
+        The polynomial a_0 + a_1 x + ... + a_n x^n can be instantiated using
+        Polynomial([a_0, a_1, ..., a_n]) or Polynomial((a_0, a_1, ..., a_n)).
+        In either case, the resulting field coeffs will be an indexed tuple.
 
         The argument to the parameter x controls the letter used for the in-
         determinant and whether the str representation wraps the polynomial
-        in parentheses or in square brackets in which case, with a totally
+        in parentheses or in square brackets (in which case, with a totally
         ordered coefficient ring, the value of spaces is automatically set
-        to False (see examples).
+        to False).
+
+        The parameters spaces and increasing control only the str represent-
+        ation (see examples).
 
         Args:
 
-            coeffs (iterable): The coefficients for the polynomial.
+            coeffs (Sequence[Ring]): The coefficients for the polynomial.
 
             x (string): The string to use for the indeterminate.
 
@@ -235,7 +253,7 @@ class Polynomial(Generic[Ring]):
                 representation of polynomials, but only when the coeffi-
                 cient ring is totally ordered.
 
-            increasing (bool): Whether the string representing has inc-
+            increasing (bool): Whether the string representation has inc-
                 creasing powers of the indeterminant.
 
         Examples:
@@ -366,7 +384,7 @@ class Polynomial(Generic[Ring]):
         #coeffs = [
         #    cast(Ring, 0) * coeffs[-1] if coeff == 0 else coeff for coeff in coeffs
         #]
-        self._coeffs: Sequence[Ring] = tuple(coeffs)
+        self._coeffs = tuple(coeffs)
 
     def __add__(
         self: Polynomial[Ring], other: Union[Ring, Polynomial[Ring]]
@@ -410,11 +428,11 @@ class Polynomial(Generic[Ring]):
                     self.spaces,
                     self.increasing
                 )
-        return self.__class__((self[0] + other,)+self[1:], self.x, self.spaces, self.increasing)
+        return self.__class__((cast(Ring, self[0]) + cast(Ring, other),) + cast(Tuple[Ring], self[1:]), self.x, self.spaces, self.increasing)
 
     def __radd__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
         """Reverse add."""
-        return self.__class__((self[0] + other,)+self[1:], self.x, self.spaces, self.increasing)
+        return self.__class__((cast(Ring, self[0]) + other,) + cast(Tuple[Ring], self[1:]), self.x, self.spaces, self.increasing)
 
     def __neg__(self: Polynomial[Ring]) -> Polynomial[Ring]:
         """Return the negative of a Polynomial.
@@ -451,7 +469,7 @@ class Polynomial(Generic[Ring]):
         """Reverse subtract."""
         #if isinstance(other, Ring_):
         #return (- self).__add__(self.__class__((other,), self.x, self.spaces, self.increasing))
-        return self.__class__((-self[0] + other,)+tuple(-co for co in self._coeffs[1:]), self.x, self.spaces, self.increasing)
+        return self.__class__((-cast(Ring,self[0]) + other,)+ tuple(-co for co in self._coeffs[1:]), self.x, self.spaces, self.increasing)
         #return NotImplemented
 
     def __mul__(
@@ -535,9 +553,12 @@ class Polynomial(Generic[Ring]):
                 #        summ += lst1[j] * lst2[n+1+i-j]
                 #    product.append(summ)
                 # return self.__class__(product, self.x, self.spaces, self.increasing)
-            if other[-1] != other[-1]**0 and other[:-1] != 0:
+            # By here other has an indet different than that of self. If other is not a
+            # monic monomial then return NotImplemented.  TODO: Why?
+            if cast(Ring, other[-1]) != cast(Ring, other[-1])**0 and other.__class__(cast(Tuple[Ring], other[:-1]))._degree is not None:
                 return NotImplemented
-            return other.__class__(other._degree * (0,) + (self,), other.x)
+            # By here other is not the zero poly
+            return other.__class__(cast(int, other._degree) * (0,) + (self,), other.x)
             #return self.__class__(tuple(self * coef for coef in other._coeffs), other.x, other.spaces, other.increasing)
         #if isinstance(other, Ring_):
         #return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
@@ -553,29 +574,29 @@ class Polynomial(Generic[Ring]):
         return self.__class__(tuple(coef * other for coef in self._coeffs), self.x, self.spaces, self.increasing)
         #return NotImplemented
 
-    def fftmult(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
-        """Return the product of two polynomials, computed using (numpy's) FFT.
+    #def fftmult(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]:
+    #    """Return the product of two polynomials, computed using (numpy's) FFT.
 
-        >>> p = Polynomial([1,2,3]); q = Polynomial([1,2]);
-        >>> print(p.fftmult(q))
-        1.0 + 4.0x + 7.0x^2 + 6.0x^3
+    #    >>> p = Polynomial([1,2,3]); q = Polynomial([1,2]);
+    #    >>> print(p.fftmult(q))
+    #    1.0 + 4.0x + 7.0x^2 + 6.0x^3
 
-        Notes: O(nlog(n)). Doesn't work without modification with Fraction
-        coefficients.
-        """
-        import numpy as np
+    #    Notes: O(nlog(n)). Doesn't work without modification with Fraction
+    #    coefficients.
+    #    """
+    #    import numpy as np
 
-        if self._degree is None or other._degree is None:
-            return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
-        m = self._degree
-        n = other._degree
+    #    if self._degree is None or other._degree is None:
+    #        return self.__class__([cast(Ring, 0)], self.x, self.spaces, self.increasing)
+    #    m = self._degree
+    #    n = other._degree
 
-        zero: List[Ring] = [cast(Ring, 0)]
-        p1 = np.array(list(self._coeffs) + n * zero)
-        p2 = np.array(list(other._coeffs) + m * zero)
-        return self.__class__(
-            (np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real, self.x, self.spaces, self.increasing
-        )
+    #    zero: List[Ring] = [cast(Ring, 0)]
+    #    p1 = np.array(list(self._coeffs) + n * zero)
+    #    p2 = np.array(list(other._coeffs) + m * zero)
+    #    return self.__class__(
+    #        (np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real, self.x, self.spaces, self.increasing
+    #    )
 
     def degree(self: Polynomial[Ring]) -> Optional[int]:
         """Return the degree of a Polynomial.
@@ -640,7 +661,7 @@ class Polynomial(Generic[Ring]):
 
         if self.degree() is None:
             if n == 0:
-                return self.__class__([cast(Ring, 0) * self[-1] + cast(Ring, 1)], self.x, self.spaces, self.increasing)
+                return self.__class__([cast(Ring, 0) * cast(Ring, self[-1]) + cast(Ring, 1)], self.x, self.spaces, self.increasing)
             else:
                 return self
 
@@ -660,32 +681,32 @@ class Polynomial(Generic[Ring]):
 
         return recpow(self, n)
 
-    def fftpow(self: Polynomial[Ring], n: int) -> Polynomial[Ring]:
-        """Return the non-negative integral power of a Polynomial.
+    #def fftpow(self: Polynomial[Ring], n: int) -> Polynomial[Ring]:
+    #    """Return the non-negative integral power of a Polynomial.
 
-        Computed recursively using fftmult.
+    #    Computed recursively using fftmult.
 
-        Note: This shouldn't be used, without modification, for high powers
-        and may exhibit substantial errors even for low powers.
+    #    Note: This shouldn't be used, without modification, for high powers
+    #    and may exhibit substantial errors even for low powers.
 
-        Example:
+    #    Example:
 
-            >>> print(Polynomial([1, 2]).fftpow(3))
-            1.0 + 6.0x + 12.0x^2 + 8.0x^3
-        """
+    #        >>> print(Polynomial([1, 2]).fftpow(3))
+    #        1.0 + 6.0x + 12.0x^2 + 8.0x^3
+    #    """
 
-        def fftrecpow(p, n):
-            if n == 0:
-                return Polynomial([1], self.x, self.spaces, self.increasing)
-            else:
-                factor = fftrecpow(p, n // 2)
-                # print("in recpow",factor)
-                if n % 2 == 0:
-                    return factor.fftmult(factor)
-                else:
-                    return factor.fftmult(factor.fftmult(p))
+    #    def fftrecpow(p, n):
+    #        if n == 0:
+    #            return Polynomial([1], self.x, self.spaces, self.increasing)
+    #        else:
+    #            factor = fftrecpow(p, n // 2)
+    #            # print("in recpow",factor)
+    #            if n % 2 == 0:
+    #                return factor.fftmult(factor)
+    #            else:
+    #                return factor.fftmult(factor.fftmult(p))
 
-        return fftrecpow(self, n)
+    #    return fftrecpow(self, n)
 
     def __call__(self: Polynomial[Ring], x: Ring) -> Ring:
         """Return the result of evaluating a Polynomial on a number.
@@ -949,7 +970,7 @@ class Polynomial(Generic[Ring]):
         """
         return "Polynomial(%s)" % repr(self._coeffs)
 
-    def __getitem__(self: Polynomial[Ring], n: int) -> Ring:
+    def __getitem__(self: Polynomial[Ring], n: Union[int, slice]) -> Union[Ring, Tuple[Ring]]:
         """Built-in Indexing.
 
         Return an element tuple self._coeffs.
@@ -1237,7 +1258,6 @@ class Polynomial(Generic[Ring]):
 
 Field = TypeVar("Field", bound=DivisionRing_)
 
-
 class FPolynomial(Polynomial[Field]):
 
     """Extends the Polynomial class to polynomials over a field.
@@ -1375,7 +1395,7 @@ class FPolynomial(Polynomial[Field]):
         """
         return "FPolynomial(%s)" % repr(self._coeffs)
 
-    # below here (and most if not all of the casting above is just for mypy purposes
+    # below here and most if not all of the casting above is just for mypy purposes
 
     #def __add__(
     #    self: FPolynomial[Field], other: Union[Field, Polynomial[Field]]

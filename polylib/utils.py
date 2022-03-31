@@ -3,11 +3,11 @@ from functools import reduce
 from operator import mul
 
 __author__ = "Scott Simmons"
-__version__ = "0.1"
+__version__ = "0.2"
 __status__ = "Development"
-__date__ = "06/23/21"
+__date__ = "03/25/22"
 __copyright__ = """
-  Copyright 2014-2021 Scott Simmons
+  Copyright 2014-2022 Scott Simmons
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
