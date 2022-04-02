@@ -84,15 +84,15 @@ def berniPoly(n: int) -> Polynomial:
         p_.append(Fraction((-1) ** i, math.factorial(i)))
     p = Polynomial(p_)
 
-    #q = Polynomial([Fraction(1)])
+    # q = Polynomial([Fraction(1)])
 
-    #for i in range(1, n + 1):
+    # for i in range(1, n + 1):
     #    q = q * p + Polynomial([Fraction(1)])
     #    q = Polynomial(q._coeffs[: n + 2])
 
-    #return Polynomial(q._coeffs[: n + 1])
+    # return Polynomial(q._coeffs[: n + 1])
 
-    return Polynomial([1]) if n == 0 else (1-p).formalinv(n)
+    return Polynomial([1]) if n == 0 else (1 - p).formalinv(n)
 
 
 def berni(n: int) -> int:

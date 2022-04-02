@@ -108,136 +108,145 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
         raise ValueError(f"n must be positive, not {n}")
 
     if moebius:
-        #try:
-            # # below computes literally the nth cyclotomic poly via its
-            # # moebius inversion formula.  In practice, this is slower
-            # # than the recursive formula in general, and particularly
-            # # on products of say 4 or more distinct primes.
-            # from numlib import mu
-            # prod = Polynomial([-1] + [0]*(n-1) + [1])
-            # for d in range(1, n):
-            #     if n % d == 0:
-            #         if mu(n//d) == 1:
-            #             prod *= Polynomial([-1] + [0]*(d-1) + [1])
-            #         elif mu(n//d) == -1:
-            #             prod //= Polynomial([-1] + [0]*(d-1) + [1])
-            # return prod
+        # try:
+        # # below computes literally the nth cyclotomic poly via its
+        # # moebius inversion formula.  In practice, this is slower
+        # # than the recursive formula in general, and particularly
+        # # on products of say 4 or more distinct primes.
+        # from numlib import mu
+        # prod = Polynomial([-1] + [0]*(n-1) + [1])
+        # for d in range(1, n):
+        #     if n % d == 0:
+        #         if mu(n//d) == 1:
+        #             prod *= Polynomial([-1] + [0]*(d-1) + [1])
+        #         elif mu(n//d) == -1:
+        #             prod //= Polynomial([-1] + [0]*(d-1) + [1])
+        # return prod
 
-            import numlib
+        import numlib  # type: ignore
 
-            def cyclo_distinct_primes(n, one=1):
-                """Return cyclo. poly. for n = prod. of distinct primes.
+        def cyclo_distinct_primes(n, one=1):
+            """Return cyclo. poly. for n = prod. of distinct primes.
 
                 """
-                # below computes literally the nth cyclotomic poly via its
-                # moebius inversion formula.  In practice, this is slower
-                # than the recursive formula in general, and particularly
-                # on products of say 4 or more distinct primes.
-                from numlib import mu
+            # below computes literally the nth cyclotomic poly via its
+            # moebius inversion formula.  In practice, this is slower
+            # than the recursive formula in general, and particularly
+            # on products of say 4 or more distinct primes.
+            from numlib import mu
 
-                deg = numlib.phi(n)
+            deg = numlib.phi(n)
 
-                #prod = 1
-                #for d in range(1, n):
-                #    if n % d == 0:
-                #        if numlib.mu(n//d) == 1:
-                #            prod *= Polynomial([-1] + [0]*(d-1) + [1])
-                #        elif numlib.mu(n//d) == -1:
-                #            prod*(Polynomial([-1] + [0]*(d-1) + [1])).formalinv(deg)
-                #return prod
+            # prod = 1
+            # for d in range(1, n):
+            #    if n % d == 0:
+            #        if numlib.mu(n//d) == 1:
+            #            prod *= Polynomial([-1] + [0]*(d-1) + [1])
+            #        elif numlib.mu(n//d) == -1:
+            #            prod*(Polynomial([-1] + [0]*(d-1) + [1])).formalinv(deg)
+            # return prod
 
-                nums = []
-                dens = []
-                for d in range(1, n+1):
-                    if n % d == 0:
-                        if numlib.mu(n//d) == 1:
-                            nums.append(Polynomial([one] + [0*one]*(d-1) + [one]))
-                        else:
-                            dens.append(Polynomial([one] + [0*one]*(d-1) + [one]))
-                #print(', '.join(map(lambda x: str(x), nums)))
-                #print(', '.join(map(lambda x: str(x), dens)))
+            nums = []
+            dens = []
+            for d in range(1, n + 1):
+                if n % d == 0:
+                    if numlib.mu(n // d) == 1:
+                        nums.append(Polynomial([one] + [0 * one] * (d - 1) + [one]))
+                    else:
+                        dens.append(Polynomial([one] + [0 * one] * (d - 1) + [one]))
+            # print(', '.join(map(lambda x: str(x), nums)))
+            # print(', '.join(map(lambda x: str(x), dens)))
 
-                # slow
-                #num = reduce(mul, nums, 1)
-                #den = reduce(mul, dens, 1)
-                #return (num.truncate(deg) * (den.formalinv(deg))).truncate(deg)
+            # slow
+            # num = reduce(mul, nums, 1)
+            # den = reduce(mul, dens, 1)
+            # return (num.truncate(deg) * (den.formalinv(deg))).truncate(deg)
 
-                # still slow
-                num = reduce(mul, nums, 1)
-                return reduce(lambda x,y: (x*(y.formalinv(x._degree-y._degree))).truncate(x._degree-y._degree), dens, num)
+            # still slow
+            num = reduce(mul, nums, 1)
+            return reduce(
+                lambda x, y: (x * (y.formalinv(x._degree - y._degree))).truncate(
+                    x._degree - y._degree
+                ),
+                dens,
+                num,
+            )
 
-                # fftmult not faster, here, for some reason (poly mult implementation
-                # might already be nlog(n)??)
-                # on 5*7*11*13,  nearly 51.1 sec (per loop)
-                # on 3*5*7*11*13,
-                #return reduce(
-                #    lambda x,y: (x*y).truncate(deg), [
-                #        num.fftmult(den.formalinv(deg)).truncate(deg)
-                #        for num, den in zip(nums, dens)
-                #    ], 1
-                #).apply(round).apply(int)
+            # fftmult not faster, here, for some reason (poly mult implementation
+            # might already be nlog(n)??)
+            # on 5*7*11*13,  nearly 51.1 sec (per loop)
+            # on 3*5*7*11*13,
+            # return reduce(
+            #    lambda x,y: (x*y).truncate(deg), [
+            #        num.fftmult(den.formalinv(deg)).truncate(deg)
+            #        for num, den in zip(nums, dens)
+            #    ], 1
+            # ).apply(round).apply(int)
 
-                #                   Core i5 (int)
-                # on 5*7*11*13,     5.88 secs (per loop)
-                # on 3*5*7*11*13,   54   secs (per loop)
-                # on 2*3*5*7*11*13     secs (per loop)
-                # on 255255              mins
-                return reduce(
-                    lambda x,y: (x * y).truncate(deg), [
-                        (num * den.formalinv(deg)).truncate(deg)
-                        for num, den in zip(nums, dens)
-                    ], one
-                )
+            #                   Core i5 (int)
+            # on 5*7*11*13,     5.88 secs (per loop)
+            # on 3*5*7*11*13,   54   secs (per loop)
+            # on 2*3*5*7*11*13     secs (per loop)
+            # on 255255              mins
+            return reduce(
+                lambda x, y: (x * y).truncate(deg),
+                [
+                    (num * den.formalinv(deg)).truncate(deg)
+                    for num, den in zip(nums, dens)
+                ],
+                one,
+            )
 
-                # on 5*7*11*13,      8.45  sec (per loop)
-                # on 3*5*7*11*13,    1m16s
-                # on 2*3*5*7*11*13   3m31s   WHY IS THIS SLOWER THAN ABOVE
-                # on 255255
-                # consider truncating during multiplication in both places below; so
-                # add truncate paramter to __mul__ etc.
-                #return reduce(
-                #    lambda x,y: (x*y).truncate(deg), [
-                #        (num * den.formalinv(num._degree-den._degree)).truncate(num._degree-den._degree)
-                #        if num._degree % den._degree == 0 else
-                #        (num * den.formalinv(deg)).truncate(deg)
-                #        for num, den in zip(nums, dens)
-                #    ], 1
-                #)
+            # on 5*7*11*13,      8.45  sec (per loop)
+            # on 3*5*7*11*13,    1m16s
+            # on 2*3*5*7*11*13   3m31s   WHY IS THIS SLOWER THAN ABOVE
+            # on 255255
+            # consider truncating during multiplication in both places below; so
+            # add truncate paramter to __mul__ etc.
+            # return reduce(
+            #    lambda x,y: (x*y).truncate(deg), [
+            #        (num * den.formalinv(num._degree-den._degree)).truncate(num._degree-den._degree)
+            #        if num._degree % den._degree == 0 else
+            #        (num * den.formalinv(deg)).truncate(deg)
+            #        for num, den in zip(nums, dens)
+            #    ], 1
+            # )
 
-                #                   Core i5 (int)
-                # on 5*7*11*13,     6.23 secs (per loop)
-                # on 3*5*7*11*13,   53.6 secs (per loop)
-                # on 2*3*5*7*11*13  141  secs (per loop)
-                # on 255255         460  mins
-                #return reduce(
-                #    lambda x,y: (x*y).truncate(deg), [
-                #        (num * den.formalinv(num._degree-den._degree)).truncate(num._degree-den._degree)
-                #        if num._degree % den._degree == 0 else
-                #        (num * den.formalinv(deg - (deg % den._degree))).truncate(deg)
-                #        if den._degree <= deg else
-                #        num.truncate(deg)
-                #        for num, den in zip(nums, dens)
-                #    ], one
-                #)
+            #                   Core i5 (int)
+            # on 5*7*11*13,     6.23 secs (per loop)
+            # on 3*5*7*11*13,   53.6 secs (per loop)
+            # on 2*3*5*7*11*13  141  secs (per loop)
+            # on 255255         460  mins
+            # return reduce(
+            #    lambda x,y: (x*y).truncate(deg), [
+            #        (num * den.formalinv(num._degree-den._degree)).truncate(num._degree-den._degree)
+            #        if num._degree % den._degree == 0 else
+            #        (num * den.formalinv(deg - (deg % den._degree))).truncate(deg)
+            #        if den._degree <= deg else
+            #        num.truncate(deg)
+            #        for num, den in zip(nums, dens)
+            #    ], one
+            # )
 
-            one = 1
+        one = 1
 
-            if gmp:
-                try:
-                    import gmpy2
-                    one = gmpy2.mpz(1)
-                except:
-                    pass
+        if gmp:
+            try:
+                import gmpy2  # type: ignore
 
-            return cyclo_distinct_primes(n, one).apply(int)
+                one = gmpy2.mpz(1)
+            except:
+                pass
 
-        #except:
-        #    pass
+        return cyclo_distinct_primes(n, one).apply(int)
+
+    # except:
+    #    pass
 
     # on 5*7*11*13, 13.75 mins
     # there is no point in putting option to use gmp here
     def cyclopoly(n: int) -> Polynomial:
-        return (Polynomial([-1] + [0]*(n-1) + [1])) // reduce(
+        return (Polynomial([-1] + [0] * (n - 1) + [1])) // reduce(
             mul, [cyclopoly(d) for d in range(1, n) if n % d == 0], Polynomial([1])
         )
 
