@@ -99,27 +99,9 @@ __copyright__ = """
 """
 __license__ = "Apache 2.0"
 
-# Don't need this:
-#
-# SemiGroup = TypeVar('SemiGroup', bound='SemiGroup_')
-#
-# @runtime
-# class SemiGroup_(Protocol):
-#
-#    """The minimal, concatable, sequence-like object for coefficients."""
-#
-#    def __add__(self: SemiGroup, other: SemiGroup) -> SemiGroup:
-#        """This needs to implement concatenation."""
-#        ...
-#
-#    def __len__(self: SemiGroup) -> int:
-#        ...
-#
-#    def __getitem__(self: SemiGroup, key: Any) -> Any:
-#        ...
-
 Ring = TypeVar("Ring", bound="Ring_")
 Field = TypeVar("Field", bound="DivisionRing_")
+DivisionRing = TypeVar("DivisionRing", bound="DivisionRing_")
 
 # Below won't work because currently a TypeVar can't take an argument. If this worked we
 # might be able to put P[R] instead Polynomial[R] in the dunder methods in Polynomial.
@@ -406,12 +388,6 @@ class Polynomial(Generic[Ring]):
         self._degree = -1 if coeffs[-1] == 0 else index
         self._coeffs = tuple(coeffs)
 
-    # @overload
-    # def __add__(self: Polynomial[Ring], other: Polynomial[Ring]) -> Polynomial[Ring]: ...
-
-    # @overload
-    # def __add__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]: ...
-
     def __add__(
         self: Polynomial[Ring], other: Union[int, Ring, Polynomial[Ring]]
     ) -> Polynomial[Ring]:
@@ -465,7 +441,7 @@ class Polynomial(Generic[Ring]):
             self.increasing,
         )
 
-    def __radd__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
+    def __radd__(self: Polynomial[Ring], other: Union[int, Ring]) -> Polynomial[Ring]:
         """Reverse add."""
         return self.__class__(
             (self[0] + other,) + self[1:], self.x, self.spaces, self.increasing
@@ -519,7 +495,7 @@ class Polynomial(Generic[Ring]):
         # return NotImplemented
 
     def __mul__(
-        self: Polynomial[Ring], other: Union[Ring, Polynomial[Ring]]
+        self: Polynomial[Ring], other: Union[int, Ring, Polynomial[Ring]]
     ) -> Polynomial[Ring]:
         """Return the product of two Polynomials.
 
@@ -615,21 +591,21 @@ class Polynomial(Generic[Ring]):
         # if isinstance(other, Ring_):
         # return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
         return self.__class__(
-            tuple(coef * other for coef in self._coeffs),
+            tuple(coef * cast(Ring, other) for coef in self._coeffs),
             self.x,
             self.spaces,
             self.increasing,
         )
         # return NotImplemented
 
-    def __rmul__(self: Polynomial[Ring], other: Ring) -> Polynomial[Ring]:
+    def __rmul__(self: Polynomial[Ring], other: Union[int, Ring]) -> Polynomial[Ring]:
         """Reverse multiply."""
 
         # if isinstance(other, Ring_):
         # return self.__class__((other,), self.x, self.spaces, self.increasing)._mul(self)
         # return self._mul(self.__class__((other,), self.x, self.spaces, self.increasing))
         return self.__class__(
-            tuple(coef * other for coef in self._coeffs),
+            tuple(coef * cast(Ring, other) for coef in self._coeffs),
             self.x,
             self.spaces,
             self.increasing,
