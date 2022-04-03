@@ -126,9 +126,7 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
         import numlib  # type: ignore
 
         def cyclo_distinct_primes(n, one=1):
-            """Return cyclo. poly. for n = prod. of distinct primes.
-
-                """
+            """Return cyclo. poly. for n = prod. of distinct primes."""
             # below computes literally the nth cyclotomic poly via its
             # moebius inversion formula.  In practice, this is slower
             # than the recursive formula in general, and particularly

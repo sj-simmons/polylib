@@ -53,10 +53,8 @@ __license__ = "Apache 2.0"
 
 import sys
 import math
-from typing import cast
 from fractions import Fraction
 from polylib import Polynomial
-from numbers import Integral
 
 
 def berniPoly(n: int) -> Polynomial:
@@ -92,7 +90,7 @@ def berniPoly(n: int) -> Polynomial:
 
     # return Polynomial(q._coeffs[: n + 1])
 
-    return Polynomial([1]) if n == 0 else (1 - p).formalinv(n)
+    return Polynomial((1,)) if n == 0 else (1 - p).formalinv(n)
 
 
 def berni(n: int) -> int:
@@ -112,7 +110,7 @@ def berni(n: int) -> int:
     q = berniPoly(n)
 
     # be careful: Polynomial strips trailing zeros
-    if cast(int, q.degree()) < n:
+    if q._degree < n:
         return 0
     else:
         return (-1) ** n * math.factorial(n) * q[n]
@@ -139,7 +137,7 @@ def main():
         if arg.isdigit():
             n = int(arg)
 
-    if n is None or not isinstance(n, Integral) or n < 0:
+    if n is None or not isinstance(n, int) or n < 0:
         sys.exit(print(__doc__))
 
     p = berniPoly(n)
