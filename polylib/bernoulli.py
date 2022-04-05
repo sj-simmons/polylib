@@ -54,10 +54,10 @@ __license__ = "Apache 2.0"
 import sys
 import math
 from fractions import Fraction
-from polylib import Polynomial
+from polylib.polynomial import Polynomial
 
 
-def berniPoly(n: int) -> Polynomial:
+def berniPoly(n: int) -> Polynomial[Fraction]:
     """Return the generating series x/(1-e^(-x)) modulo (x^(n+1))
        as a Polynomial.
 
@@ -72,7 +72,7 @@ def berniPoly(n: int) -> Polynomial:
 
     >>> for i,x in enumerate(berniPoly(10)):
     ...    print("B_"+str(i)+" =",(-1)**i*math.factorial(i)*x,end=', ')
-    ...                                                    # doctest: +ELLIPSIS
+    ...    # doctest: +ELLIPSIS
     B_0 = 1, B_1 = -1/2, B_2 = 1/6, ...
 
     """
@@ -83,17 +83,16 @@ def berniPoly(n: int) -> Polynomial:
     p = Polynomial(p_)
 
     # q = Polynomial([Fraction(1)])
-
     # for i in range(1, n + 1):
     #    q = q * p + Polynomial([Fraction(1)])
     #    q = Polynomial(q._coeffs[: n + 2])
 
     # return Polynomial(q._coeffs[: n + 1])
 
-    return Polynomial((1,)) if n == 0 else (1 - p).formalinv(n)
+    return Polynomial((Fraction(1),)) if n == 0 else (1 - p).formalinv(n)
 
 
-def berni(n: int) -> int:
+def berni(n: int) -> Fraction:
     """Return B_n, the nth Bernoulli number.
 
        B_n is defined by:
@@ -111,12 +110,12 @@ def berni(n: int) -> int:
 
     # be careful: Polynomial strips trailing zeros
     if q._degree < n:
-        return 0
+        return Fraction(0)
     else:
-        return (-1) ** n * math.factorial(n) * q[n]
+        return Fraction((-1) ** n * math.factorial(n) * q[n])
 
 
-def main():
+def main() -> None:
 
     if len(sys.argv) == 2 and sys.argv[1] == "-v":
         import doctest
@@ -126,7 +125,7 @@ def main():
         sys.exit()
 
     if not (2 <= len(sys.argv) <= 3):
-        sys.exit(print(__doc__))
+        sys.exit(__doc__)  # typing: ignore
 
     n = None
     show = False
@@ -138,7 +137,7 @@ def main():
             n = int(arg)
 
     if n is None or not isinstance(n, int) or n < 0:
-        sys.exit(print(__doc__))
+        sys.exit(__doc__)
 
     p = berniPoly(n)
 

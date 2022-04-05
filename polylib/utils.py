@@ -1,6 +1,6 @@
-from polylib import Polynomial
 from functools import reduce
 from operator import mul
+from polylib import Polynomial
 
 __author__ = "Scott Simmons"
 __version__ = "0.2"
@@ -24,7 +24,7 @@ __copyright__ = """
 __license__ = "Apache 2.0"
 
 
-def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
+def cyclotomic(n: int, moebius: bool = False, gmp: bool = False) -> Polynomial[int]:
     """Return the nth cyclotomic polynomial.
 
     For a positive integer n, this returns the nth cyclotomic polynomial
@@ -125,7 +125,7 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
 
         import numlib  # type: ignore
 
-        def cyclo_distinct_primes(n, one=1):
+        def cyclo_distinct_primes(n: int, one: int = 1) -> Polynomial[int]:
             """Return cyclo. poly. for n = prod. of distinct primes."""
             # below computes literally the nth cyclotomic poly via its
             # moebius inversion formula.  In practice, this is slower
@@ -167,7 +167,7 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
                     x._degree - y._degree
                 ),
                 dens,
-                num,
+                Polynomial((num,)),
             )
 
             # fftmult not faster, here, for some reason (poly mult implementation
@@ -243,7 +243,7 @@ def cyclotomic(n: int, moebius=False, gmp=False) -> Polynomial:
 
     # on 5*7*11*13, 13.75 mins
     # there is no point in putting option to use gmp here
-    def cyclopoly(n: int) -> Polynomial:
+    def cyclopoly(n: int) -> Polynomial[int]:
         return (Polynomial([-1] + [0] * (n - 1) + [1])) // reduce(
             mul, [cyclopoly(d) for d in range(1, n) if n % d == 0], Polynomial([1])
         )

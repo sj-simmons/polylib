@@ -1,4 +1,4 @@
-from .polynomial import Polynomial, FPolynomial
+from .polynomial import Polynomial, FPolynomial, Field, Ring
 from .utils import cyclotomic
 
 __author__ = 'Scott Simmons'
