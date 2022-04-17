@@ -1,6 +1,7 @@
 from functools import reduce
 from operator import mul
 from polylib import Polynomial
+import numlib.utils as nl
 
 __author__ = "Scott Simmons"
 __version__ = "0.2"
@@ -123,7 +124,6 @@ def cyclotomic(n: int, moebius: bool = False, gmp: bool = False) -> Polynomial[i
         #             prod //= Polynomial([-1] + [0]*(d-1) + [1])
         # return prod
 
-        import numlib
 
         def cyclo_distinct_primes(n: int, one: int = 1) -> Polynomial[int]:
             """Return cyclo. poly. for n = prod. of distinct primes."""
@@ -131,9 +131,8 @@ def cyclotomic(n: int, moebius: bool = False, gmp: bool = False) -> Polynomial[i
             # moebius inversion formula.  In practice, this is slower
             # than the recursive formula in general, and particularly
             # on products of say 4 or more distinct primes.
-            from numlib import mu
 
-            deg = numlib.phi(n)
+            deg = nl.phi(n)
 
             # prod = 1
             # for d in range(1, n):
@@ -148,7 +147,7 @@ def cyclotomic(n: int, moebius: bool = False, gmp: bool = False) -> Polynomial[i
             dens = []
             for d in range(1, n + 1):
                 if n % d == 0:
-                    if numlib.mu(n // d) == 1:
+                    if nl.mu(n // d) == 1:
                         nums.append(Polynomial([one] + [0 * one] * (d - 1) + [one]))
                     else:
                         dens.append(Polynomial([one] + [0 * one] * (d - 1) + [one]))
