@@ -151,8 +151,8 @@ class Ring(Protocol[R_]):
     def __rmul__(self, other: R_, /) -> R_:
         ...
 
-    #def __pow__(self, n: int, /) -> Optional[R_]:
-    #    ...
+    def __pow__(self, n: int, /) -> Optional[R_]:
+        ...
 
 
 # OR = TypeVar("OR", contravariant=True)
@@ -176,8 +176,8 @@ class Field(Ring[R_], Protocol):
     def __truediv__(self, other: R_, /) -> R_:
         ...
 
-    #def __pow__(self, n: int, /) -> R_:
-    #    ...
+    def __pow__(self, n: int, /) -> R_:
+        ...
 
 
 # R = TypeVar("R", bound=Ring)
