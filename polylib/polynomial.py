@@ -443,7 +443,7 @@ class Polynomial(Generic[R]):
 
     @overload
     def __add__(
-        self: Polynomial[F], other: Union[int, F, Polynomial[F]]
+        self: FPolynomial[F], other: Union[int, F, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
 
@@ -509,7 +509,7 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def __radd__(self: Polynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __radd__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
         pass
 
     @overload
@@ -523,7 +523,7 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def __neg__(self: Polynomial[F]) -> FPolynomial[F]:
+    def __neg__(self: FPolynomial[F]) -> FPolynomial[F]:
         pass
 
     @overload
@@ -545,7 +545,7 @@ class Polynomial(Generic[R]):
 
     @overload
     def __sub__(
-        self: Polynomial[F], other: Union[int, F, Polynomial[F]]
+        self: FPolynomial[F], other: Union[int, F, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
 
@@ -576,7 +576,7 @@ class Polynomial(Generic[R]):
         return self + other.__neg__()
 
     @overload
-    def __rsub__(self: Polynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __rsub__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
         pass
 
     @overload
@@ -597,7 +597,7 @@ class Polynomial(Generic[R]):
 
     @overload
     def __mul__(
-        self: Polynomial[F], other: Union[int, R, Polynomial[F]]
+        self: FPolynomial[F], other: Union[int, R, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
 
@@ -711,7 +711,7 @@ class Polynomial(Generic[R]):
         # return NotImplemented
 
     @overload
-    def __rmul__(self: Polynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __rmul__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
         pass
 
     @overload
@@ -784,7 +784,7 @@ class Polynomial(Generic[R]):
         return self._degree
 
     @overload
-    def __pow__(self: Polynomial[F], n: int) -> FPolynomial[F]:
+    def __pow__(self: FPolynomial[F], n: int) -> FPolynomial[F]:
         pass
 
     @overload
@@ -1386,11 +1386,11 @@ class Polynomial(Generic[R]):
             return self
 
     @overload
-    def __floordiv__(self, other: Polynomial[F]) -> FPolynomial[F]:
+    def __floordiv__(self: FPolynomial[F], other: Polynomial[F]) -> FPolynomial[F]:
         pass
 
     @overload
-    def __floordiv__(self, other: Polynomial[R]) -> Polynomial[R]:
+    def __floordiv__(self: Polynomial[R], other: Polynomial[R]) -> Polynomial[R]:
         pass
 
     def __floordiv__(self, other):  # type: ignore[no-untyped-def]
@@ -1416,7 +1416,7 @@ class Polynomial(Generic[R]):
         return hash(self._coeffs)
 
     @overload
-    def formalinv(self: Polynomial[F], maxdegree: int) -> FPolynomial[F]:
+    def formalinv(self: FPolynomial[F], maxdegree: int) -> FPolynomial[F]:
         pass
 
     @overload
@@ -1424,7 +1424,7 @@ class Polynomial(Generic[R]):
         pass
 
     def formalinv(self, maxdegree):  # type: ignore[no-untyped-def]
-        """Return formal (as series) inverse of self modulo maxdegree+1.
+        """Return formal (as series) inverse of self modulo the maxdegree+1 term.
 
         >>> x = Polynomial([0,1])
         >>> print((1 - x).formalinv(5))
@@ -1464,7 +1464,7 @@ class Polynomial(Generic[R]):
         return self[0] * accum
 
     @overload
-    def derivative(self: Polynomial[F]) -> FPolynomial[F]:
+    def derivative(self: FPolynomial[F]) -> FPolynomial[F]:
         pass
 
     @overload
@@ -1497,7 +1497,7 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def truncate(self: Polynomial[F], degree: int) -> FPolynomial[F]:
+    def truncate(self: FPolynomial[F], degree: int) -> FPolynomial[F]:
         pass
 
     @overload
