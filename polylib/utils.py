@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import mul
-from polylib import Polynomial
+from polylib.polynomial import Polynomial
 import numlib.utils as nl
 
 __author__ = "Scott Simmons"
