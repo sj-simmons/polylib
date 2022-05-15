@@ -79,6 +79,7 @@ from typing import (
     Any,
     overload,
     Callable,
+    TYPE_CHECKING,
 )
 import sys
 
@@ -121,82 +122,84 @@ __license__ = "Apache 2.0"
 # The issue is that Python typing can't figure out subclasses of Polynomial.
 # P = TypeVar('P', bound='Polynomial')
 
-R_ = TypeVar("R_")
+#R_ = TypeVar("R_", bound = 'Ring')
+R_ = TypeVar("R_")  # don't even need the bound, evidently
 
-
-class Ring(Protocol[R_]):
+class Ring(Protocol):
     """The methods we require to model a ring."""
 
     @overload
-    def __add__(self, other: R_, /) -> R_: ...
+    def __add__(self: R_, other: int, /) -> R_: ...
 
     @overload
-    def __add__(self, other: int, /) -> R_: ...
+    def __add__(self: R_, other: R_, /) -> R_: ...
 
-    def __add__(self, other: Union[int, R_]) -> R_: ...
+    def __add__(self: R_, other: Union[int, R_]) -> R_: ...
 
-    def __radd__(self, other: int, /) -> R_: ...
+    def __radd__(self: R_, other: int, /) -> R_: ...
 
-    def __neg__(self) -> R_: ...
-
-    @overload
-    def __sub__(self, other: R_, /) -> R_: ...
+    def __neg__(self: R_) -> R_: ...
 
     @overload
-    def __sub__(self, other: int, /) -> R_: ...
-
-    def __sub__(self, other: Union[int, R_], /) -> R_: ...
-
-    def __rsub__(self, other: int, /) -> R_: ...
+    def __sub__(self: R_, other: int, /) -> R_: ...
 
     @overload
-    def __mul__(self, other: R_, /) -> R_: ...
+    def __sub__(self: R_, other: R_, /) -> R_: ...
+
+    def __sub__(self: R_, other: Union[int, R_], /) -> R_: ...
+
+    def __rsub__(self: R_, other: int, /) -> R_: ...
 
     @overload
-    def __mul__(self, other: int, /) -> R_: ...
+    def __mul__(self: R_, other: int, /) -> R_: ...
 
-    def __mul__(self, other: Union[int, R_]) -> R_: ...
+    @overload
+    def __mul__(self: R_, other: R_, /) -> R_: ...
 
-    def __rmul__(self, other: int, /) -> R_: ...
+    def __mul__(self: R_, other: Union[int, R_]) -> R_: ...
 
-    def __pow__(self, n: int, /) -> Optional[R_]: ...
+    def __rmul__(self: R_, other: int, /) -> R_: ...
+
+    def __pow__(self: R_, n: int, /) -> Optional[R_]: ...
 
 
 # OR = TypeVar("OR", contravariant=True)
 # class OrderedRing(Ring, Protocol[OR]): # type: ignore[type-arg]
-class OrderedRing(Ring[R_], Protocol):
+#class OrderedRing(Ring[R_], Protocol):
+class OrderedRing(Ring, Protocol):
     """A totally ordered ring."""
 
-    def __gt__(self, other: R_, /) -> bool: ...
+    def __gt__(self: R_, other: R_, /) -> bool: ...
 
-    def __lt__(self, other: R_, /) -> bool: ...
+    def __lt__(self: R_, other: R_, /) -> bool: ...
 
 
 # F_ = TypeVar("F_")
 # class Field(Ring, Protocol[F_]): # type: ignore[type-arg]
 # class Field(Ring[F_], Protocol):
 #class Field(Ring[R_], Protocol):
-class Field(Ring[R_], Protocol[R_]):
+#class Field(Ring[R_], Protocol[R_]):
+class Field(Ring, Protocol):
 #class Field(Protocol[R_]):
     """A field."""
 
     @overload
-    def __truediv__(self, other: R_, /) -> R_: ...
+    def __truediv__(self: R_, other: int, /) -> R_: ...
 
     @overload
-    def __truediv__(self, other: int, /) -> R_: ...
+    def __truediv__(self: R_, other: R_, /) -> R_: ...
 
-    def __truediv__(self, other: Union[R_, int], /) -> R_: ...
+    def __truediv__(self: R_, other: Union[R_, int], /) -> R_: ...
 
-    def __rtruediv__(self, other: int,  /) -> R_: ...
+    #def __rtruediv__(self: R_, other: int,  /) -> R_: ...
 
-    def __pow__(self, n: int, /) -> R_: ...
+    def __pow__(self: R_, n: int, /) -> R_: ...
 
 
-# R = TypeVar("R", bound=Ring)
-# F = TypeVar("F", bound=Field)
-R = TypeVar("R", bound="Ring[Any]")
-F = TypeVar("F", bound="Field[Any]")
+R = TypeVar("R", bound=Ring)
+F = TypeVar("F", bound=Field)
+#R = TypeVar("R", bound="Ring[Any]")
+#F = TypeVar("F", bound="Field[Any]")
 
 
 class Polynomial(Generic[R]):
@@ -1029,16 +1032,20 @@ class Polynomial(Generic[R]):
                 streamline = False
             else:
                 elt_ = elt + 1 if elt == zero_ else elt
-                one = cast(Field[Any], elt_) / cast(Field[Any], elt_)
+                #one = cast(Field[Any], elt_) / cast(Field[Any], elt_)
+                one = cast(Field, elt_) / cast(Field, elt_)
                 # try:   # NOTE:  clean this up
                 #    one: DivisionRing = elt_ / elt_
                 # except:
                 #    one: DivisionRing = elt_.__class__(1)
                 try:  # successful if coeffs are OrderedRing
-                    _ = one < one
-                    zero = cast(OrderedRing[Any], zero_ * one)
+                    if not TYPE_CHECKING:
+                        _ = one < one
+                    #zero = cast(OrderedRing[Any], zero_ * one)
+                    zero = cast(OrderedRing, zero_) * cast(OrderedRing, one)
                     for i in range(0, self._degree + 1):
-                        if cast(OrderedRing[Any], self[i]) > zero:  # add coefficient
+                        #if cast(OrderedRing[Any], self[i]) > zero:  # add coefficient
+                        if cast(OrderedRing, self[i]) > zero:  # add coefficient
                             if (
                                 i != 0
                                 and self[i] == one
@@ -1051,7 +1058,8 @@ class Polynomial(Generic[R]):
                                 s += " + " + str(self[i])
                             elif i == 0 or self[i] != one:
                                 s += str(self[i])
-                        elif cast(OrderedRing[Any], self[i]) < zero:
+                        #elif cast(OrderedRing[Any], self[i]) < zero:
+                        elif cast(OrderedRing, self[i]) < zero:
                             if self[i] == one.__neg__() and (
                                 s == "" or s == "(" or s == "["
                             ):
@@ -1074,7 +1082,8 @@ class Polynomial(Generic[R]):
                     if not self.spaces:
                         s = "".join(s.split())
                 except:
-                    zero__ = cast(Field[Any], zero_ * elt)
+                    #zero__ = cast(Field[Any], zero_ * elt)
+                    zero__ = cast(Field, zero_ * elt)
                     for i in range(0, self._degree + 1):
                         if i == 0 and self[0] != zero__:
                             if self[0] == one:
