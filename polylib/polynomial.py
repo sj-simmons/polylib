@@ -226,10 +226,11 @@ class Polynomial(Generic[R]):
       The coefficients can be in any implementation of a ring, possibly
       noncommutative and without 1, though
 
-         - It is best if the elements of a polynomial are all in the same
-           ring, though your program might run in any case.
+         - it is best if the coefficients of a polynomial are all in the
+           same ring -- your program might run in any case, but it likely
+           will not type check correctly.
          - said implementation of coefficients must coerce addition (on the
-           right, at least) by the int 0.
+           right, at least) by the int 0 (as do all built-ins).
          - if __truediv__ is implemented then we assume (only in __str__)
            that the ring has a unit (and that right multiplication by 1 is
            implemented).
@@ -240,7 +241,7 @@ class Polynomial(Generic[R]):
       upon instantiation.
 
       Polynomial([0]), where 0 is the zero from the coefficient ring, is the
-      zero polynomial; for which p.degree() returns, and p._degree is, -1.
+      zero polynomial; for which p._degree is -1.
 
       A non-zero constant polynomial has degree 0.
 
@@ -316,24 +317,20 @@ class Polynomial(Generic[R]):
         Examples:
 
             >>> p = Polynomial([-1, 2, -3, 0, 4, 0, 0])
-            >>> print(p)
-            -1 + 2x - 3x^2 + 4x^4
-            >>> print(p.degree())
-            4
+            >>> print(f"{p} has degree {p._degree}")
+            -1 + 2x - 3x^2 + 4x^4 has degree 4
             >>> p
             Polynomial((-1, 2, -3, 0, 4))
-            >>> p[2]
+            >>> p[2] # this is an int
             -3
-            >>> p[1:] # this is a tuple not an instance of Polynomial
+            >>> p[1:] # this is a tuple of ints, not a Polynomial
             (2, -3, 0, 4)
 
-            >>> p = Polynomial([3]); p; p.degree()
-            Polynomial((3,))
-            0
+            >>> p = Polynomial([3]); print(f"{p} has degree {p._degree}")
+            3 has degree 0
 
-            >>> p = Polynomial((0,)); p; p.degree()
-            Polynomial((0,))
-            -1
+            >>> p = Polynomial([0,]); print(f"{p} has degree {p._degree}")
+            0 has degree -1
 
             >>> p = Polynomial(())
             Traceback (most recent call last):
@@ -360,7 +357,7 @@ class Polynomial(Generic[R]):
             entations but when defined as above (by providing only their
             coefficients) increasing powers are assumed.
 
-            It's better to define polynomials in a more Sage-like manner:
+            One can define polynomials in a more Sage-like manner:
 
             >>> x = Polynomial([0, 1])
             >>> print((3*x**2-3*x-5))
@@ -370,7 +367,7 @@ class Polynomial(Generic[R]):
             >>> print((-3*x**2+3*x-5))
             -3x^2 + 3x - 5
 
-            One can change the indeterminant:
+            One can change the letter used for the indeterminant:
 
             >>> t = Polynomial([0, 1], x='t', increasing = False)
             >>> print((3*t**2-5))
@@ -381,8 +378,8 @@ class Polynomial(Generic[R]):
             >>> print(Polynomial([4-5*t, 3*t**3+t**4]))
             -5t + 4 + t^4 + 3t^3x
 
-            The str representation on the last line is ambiguous so put
-            x = '(t)' to wrap in parenthesis:
+            The str representation in the last line above is ambiguous so
+            put x = '(t)' to wrap in parenthesis:
 
             >>> t = Polynomial([0, 1], x='(t)')
             >>> print(Polynomial([4-5*t, 3*t**3+t**4]))
@@ -399,8 +396,8 @@ class Polynomial(Generic[R]):
 
             >>> x = Polynomial([0, 1])
             >>> t = Polynomial([0, 1], '(t)')
-            >>> print(t * x**0 + (t**2) * x)
-            (t) + (t^2)x
+            >>> print(t * x**0 - (2*t**5) * x **2)
+            (t) + (-2t^5)x^2
 
             >>> print(x + t)
             (t) + x
@@ -418,11 +415,14 @@ class Polynomial(Generic[R]):
             (1+4t+4t^2) + (6t+20t^2+16t^3)x + (9t^2+24t^3+16t^4)x^2
 
             When using polys with different indeterminants, one can
-            only multiply on the right with (monic) monomials:
+            currently only multiply on the right with (monic) monomials:
 
             >>> x**0*(t**0 + 2*t) + x*(3*t+4*t**2) # doctest: +ELLIPSIS
             Traceback (most recent call last):
             TypeError: unsupported operand type(s) for *: ...
+
+            >>> print((t**0 + 2*t) * 2 * x)
+            (2+4t)x
         """
         #### cannot see how this is useful; plus cannot infer type properly:
         # if len(coeffs) == 0:
@@ -783,32 +783,32 @@ class Polynomial(Generic[R]):
     #        (np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real, self.x, self.spaces, self.increasing
     #    )
 
-    def degree(self) -> int:
-        """Return the degree of a Polynomial.
+    #def degree(self) -> int:
+    #    """Return the degree of a Polynomial.
 
-        Examples:
+    #    Examples:
 
-            >>> p = Polynomial([1, 2, 0, 0])
-            >>> print(p, "has degree", p.degree())
-            1 + 2x has degree 1
+    #        >>> p = Polynomial([1, 2, 0, 0])
+    #        >>> print(p, "has degree", p._degree)
+    #        1 + 2x has degree 1
 
-            >>> p = Polynomial([17])
-            >>> print(p.degree())
-            0
+    #        >>> p = Polynomial([17])
+    #        >>> print(p._degree)
+    #        0
 
-            >>> p = Polynomial([0])
-            >>> p
-            Polynomial((0,))
-            >>> print(p.degree())
-            -1
+    #        >>> p = Polynomial([0])
+    #        >>> p
+    #        Polynomial((0,))
+    #        >>> print(p._degree)
+    #        -1
 
-            >>> p = Polynomial([complex(0)])
-            >>> p
-            Polynomial((0j,))
-            >>> print(p.degree())
-            -1
-        """
-        return self._degree
+    #        >>> p = Polynomial([complex(0)])
+    #        >>> p
+    #        Polynomial((0j,))
+    #        >>> print(p._degree)
+    #        -1
+    #    """
+    #    return self._degree
 
     @overload
     def __pow__(self: FPolynomial[F], n: int) -> FPolynomial[F]:
@@ -957,11 +957,11 @@ class Polynomial(Generic[R]):
 
             >>> p = Polynomial([1, 2, 0, -3])
             >>> print(p.__str__(streamline = False))
-            1 + 2x + 0x^2 + -3x^3
+            1 + 2x + -3x^3
 
             >>> p = Polynomial([1, 2, 0, -3], increasing = False)
             >>> print(p.__str__(streamline = False))
-            -3x^3 + 0x^2 + 2x + 1
+            -3x^3 + 2x + 1
 
             >>> print(Polynomial([0, -1,2, 0, -1,1, -2.3]))
             -x + 2x^2 - x^4 + x^5 - 2.3x^6
@@ -983,8 +983,7 @@ class Polynomial(Generic[R]):
             >>> print(Polynomial([complex(1), complex(-1,2), complex(1)]))
             1 + (-1+2j)x + x^2
 
-            >>> p = Polynomial([ complex(-1,2), complex(-1,2), complex(1)])
-            >>> print(p)
+            >>> print(Polynomial([complex(-1,2),complex(-1,2),complex(1)]))
             (-1+2j) + (-1+2j)x + x^2
 
             Polynomials over Polynomials
@@ -1112,15 +1111,15 @@ class Polynomial(Generic[R]):
                         s = reverse(s)
         if not streamline:
             for i in range(0, self._degree + 1):
-                if i == 0:
+                if i == 0 and self[0] != 0:
                     s += str(self[0])
                     if i < self._degree:
                         s += " + "
-                elif i > 1:  # add x^n
+                elif i > 1 and self[i] != 0:  # add x^n
                     s += str(self[i]) + var + "^" + str(i)
                     if i < self._degree:
                         s += " + "
-                elif i == 1:  # add x
+                elif i == 1 and self[i] != 0:  # add x
                     s += str(self[i]) + var
                     if i < self._degree:
                         s += " + "
@@ -1137,11 +1136,14 @@ class Polynomial(Generic[R]):
     def __eq__(self, other: object) -> bool:
         """Return true if the two Polynomials the same coefficients.
 
-        Coerces constants into constant Polynomials.
+        Coerces constant other into a constant Polynomial for comparison.
 
         Examples:
 
             >>> Polynomial([1]) == 1
+            True
+
+            >>> Polynomial([0]) == 0
             True
 
             >>> from fractions import Fraction
