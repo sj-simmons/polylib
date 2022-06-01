@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-"""Computes the nth Bernoulli number by computing the requisite number
-of terms of the generating series x/(1-e^(-x)). (This is not an effic-
-ient way to compute Bernoulli numbers.)
+"""
+Computes the nth Bernoulli number by computing the requisite number of
+terms of the generating series x/(1-e^(-x)). (This is not an efficient
+way to compute Bernoulli numbers.)
 
   Usage: py bernoulli.py [options] n
 
@@ -17,12 +18,12 @@ ient way to compute Bernoulli numbers.)
 
   or, interactively, e.g.:
 
-  >>> from bernoulli import *
-  >>> print(berni(12))
-  -691/2730
+    >>> from bernoulli import *
+    >>> print(berni(12))
+    -691/2730
 
-  >>> print(berniPoly(8))
-  1 + 1/2x + 1/12x^2 - 1/720x^4 + 1/30240x^6 - 1/1209600x^8
+    >>> print(berniPoly(8))
+    1 + 1/2x + 1/12x^2 - 1/720x^4 + 1/30240x^6 - 1/1209600x^8
 
 Note: Simmons uses this to gauge performance of polynomial computations
 for various implementations. For timing, try something like:
@@ -125,7 +126,7 @@ def main() -> None:
         sys.exit()
 
     if not (2 <= len(sys.argv) <= 3):
-        sys.exit(__doc__)  # typing: ignore
+        sys.exit(__doc__)
 
     n = None
     show = False
@@ -143,7 +144,7 @@ def main() -> None:
 
     if show == True:
         print("\nx/(1-e^(-x)) =\n", p, f"+ O({str(Polynomial([0]*(n+1)+[1]))})")
-        if p.degree() < n:
+        if p._degree < n:
             print("\nB_" + str(n), " = ", 0)
         else:
             print("\nB_" + str(n), " = ", (-1) ** n * math.factorial(n) * p[-1])

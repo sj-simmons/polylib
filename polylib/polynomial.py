@@ -79,6 +79,7 @@ from typing import (
     overload,
     Callable,
     TYPE_CHECKING,
+    Any,
 )
 import sys
 
@@ -470,7 +471,7 @@ class Polynomial(Generic[R]):
         self._coeffs = tuple(coeffs)
 
     @overload
-    def __add__(
+    def __add__( # type: ignore[misc]
         self: FPolynomial[F], other: Union[int, F, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
@@ -481,7 +482,7 @@ class Polynomial(Generic[R]):
     ) -> Polynomial[R]:
         pass
 
-    def __add__(self, other):  # type: ignore[no-untyped-def]
+    def __add__(self, other: Any) -> Any:
         """Return the sum of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -536,28 +537,28 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def __radd__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __radd__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __radd__(self: Polynomial[R], other: Union[int, R]) -> Polynomial[R]:
         pass
 
-    def __radd__(self, other):  # type: ignore[no-untyped-def]
+    def __radd__(self, other: Any) -> Any:
         """Reverse add."""
         return self.__class__(
             (self[0] + other,) + self[1:], self.x, self.spaces, self.increasing
         )
 
     @overload
-    def __neg__(self: FPolynomial[F]) -> FPolynomial[F]:
+    def __neg__(self: FPolynomial[F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __neg__(self: Polynomial[R]) -> Polynomial[R]:
         pass
 
-    def __neg__(self):  # type: ignore[no-untyped-def]
+    def __neg__(self) -> Any:
         """Return the negative of a Polynomial.
 
         Examples:
@@ -571,7 +572,7 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def __sub__(
+    def __sub__( # type: ignore[misc]
         self: FPolynomial[F], other: Union[int, F, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
@@ -582,7 +583,7 @@ class Polynomial(Generic[R]):
     ) -> Polynomial[R]:
         pass
 
-    def __sub__(self, other):  # type: ignore[no-untyped-def]
+    def __sub__(self, other: Any) -> Any:
         """Return the difference of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -603,14 +604,14 @@ class Polynomial(Generic[R]):
         return self + other.__neg__()
 
     @overload
-    def __rsub__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __rsub__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __rsub__(self: Polynomial[R], other: Union[int, R]) -> Polynomial[R]:
         pass
 
-    def __rsub__(self, other):  # type: ignore[no-untyped-def]
+    def __rsub__(self, other: Any) -> Any:
         """Reverse subtract."""
         # if isinstance(other, Ring):
         # return (- self).__add__(self.__class__((other,), self.x, self.spaces, self.increasing))
@@ -623,7 +624,7 @@ class Polynomial(Generic[R]):
         # return NotImplemented
 
     @overload
-    def __mul__(
+    def __mul__( # type: ignore[misc]
         self: FPolynomial[F], other: Union[int, R, Polynomial[F]]
     ) -> FPolynomial[F]:
         pass
@@ -634,7 +635,7 @@ class Polynomial(Generic[R]):
     ) -> Polynomial[R]:
         pass
 
-    def __mul__(self, other):  # type: ignore[no-untyped-def]
+    def __mul__(self, other: Any) -> Any:
         # def __mul__(self, other: Polynomial[R]) -> Polynomial[R]:
         """Return the product of two Polynomials.
 
@@ -643,17 +644,17 @@ class Polynomial(Generic[R]):
         Examples:
 
             >>> from fractions import Fraction as F
-            >>> # this might not be what you want type-wise:
+            >>> # might not type check:
             >>> print(Polynomial([1, .2, F(2, 3)]) * 2)
             2 + 0.4x + 4/3x^2
 
-            >>> print(Polynomial([F(1), F(2), F(2, 3)]) * 2)
-            2 + 4x + 4/3x^2
+            >>> print(Polynomial([F(1), F('.2'), F(2, 3)]) * 2)
+            2 + 2/5x + 4/3x^2
 
             >>> print(2 * Polynomial([F(1), F(2), F(2, 3)]))
             2 + 4x + 4/3x^2
 
-            >>> p1 = Polynomial([1, F(1, 2)])
+            >>> p1 = Polynomial([1, F(1, 2)]) # potention type error
             >>> p2 = Polynomial([F(1, 3), F(1, 5)])
             >>> print(p1 * p2)
             1/3 + 11/30x + 1/10x^2
@@ -738,14 +739,14 @@ class Polynomial(Generic[R]):
         # return NotImplemented
 
     @overload
-    def __rmul__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]:
+    def __rmul__(self: FPolynomial[F], other: Union[int, F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __rmul__(self: Polynomial[R], other: Union[int, R]) -> Polynomial[R]:
         pass
 
-    def __rmul__(self, other):  # type: ignore[no-untyped-def]
+    def __rmul__(self, other: Any) -> Any:
         """Reverse multiply."""
 
         # if isinstance(other, Ring):
@@ -811,14 +812,14 @@ class Polynomial(Generic[R]):
     #    return self._degree
 
     @overload
-    def __pow__(self: FPolynomial[F], n: int) -> FPolynomial[F]:
+    def __pow__(self: FPolynomial[F], n: int) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __pow__(self: Polynomial[R], n: int) -> Polynomial[R]:
         pass
 
-    def __pow__(self, n):  # type: ignore[no-untyped-def]
+    def __pow__(self, n: int) -> Any:
         """Return the non-negative integral power of a Polynomial.
 
         Examples:
@@ -908,7 +909,7 @@ class Polynomial(Generic[R]):
     def __call__(self: Polynomial[R], x: R) -> R:
         pass
 
-    def __call__(self, x):  # type: ignore[no-untyped-def]
+    def __call__(self, x: Any) -> Any:
         """Return the result of evaluating a Polynomial on a number.
 
         Examples:
@@ -1408,14 +1409,14 @@ class Polynomial(Generic[R]):
         return self
 
     @overload
-    def __floordiv__(self: FPolynomial[F], other: Polynomial[F]) -> FPolynomial[F]:
+    def __floordiv__(self: FPolynomial[F], other: Polynomial[F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def __floordiv__(self: Polynomial[R], other: Polynomial[R]) -> Polynomial[R]:
         pass
 
-    def __floordiv__(self, other):  # type: ignore[no-untyped-def]
+    def __floordiv__(self, other: Any) -> Any:
         """Return only the quotient when dividing self by other.
 
         Examples:
@@ -1438,14 +1439,14 @@ class Polynomial(Generic[R]):
         return hash(self._coeffs)
 
     @overload
-    def formalinv(self: FPolynomial[F], maxdegree: int) -> FPolynomial[F]:
+    def formalinv(self: FPolynomial[F], maxdegree: int) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def formalinv(self: Polynomial[R], maxdegree: int) -> Polynomial[R]:
         pass
 
-    def formalinv(self, maxdegree):  # type: ignore[no-untyped-def]
+    def formalinv(self, maxdegree: int) -> Any:
         """Return formal (as series) inverse of self modulo the maxdegree+1 term.
 
         >>> x = Polynomial([0,1])
@@ -1486,14 +1487,14 @@ class Polynomial(Generic[R]):
         return self[0] * accum
 
     @overload
-    def derivative(self: FPolynomial[F]) -> FPolynomial[F]:
+    def derivative(self: FPolynomial[F]) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def derivative(self: Polynomial[R]) -> Polynomial[R]:
         pass
 
-    def derivative(self):  # type: ignore[no-untyped-def]
+    def derivative(self) -> Any:
         """Return derivative.
 
         Example:
@@ -1519,14 +1520,14 @@ class Polynomial(Generic[R]):
         )
 
     @overload
-    def truncate(self: FPolynomial[F], degree: int) -> FPolynomial[F]:
+    def truncate(self: FPolynomial[F], degree: int) -> FPolynomial[F]: # type: ignore[misc]
         pass
 
     @overload
     def truncate(self: Polynomial[R], degree: int) -> Polynomial[R]:
         pass
 
-    def truncate(self, degree):  # type: ignore[no-untyped-def]
+    def truncate(self, degree: int) -> Any:
         """Return copy of self truncated beyond degree.
 
         Examples:
