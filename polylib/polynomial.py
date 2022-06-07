@@ -247,14 +247,12 @@ class Polynomial(Generic[R]):
 
         3. self._coeffs is a tuple consisting of the coefficients of self.
     """
-    __slots__ = ("_coeffs", "_degree", "x", "spaces", "increasing", "x_unwrapped")
+    __slots__ = ("_coeffs", "_degree", "x", "x_unwrapped")
 
     def __init__(
         self,
         coeffs: Sequence[R],
-        x: str = "x",
-        spaces: bool = True,
-        increasing: bool = True,
+        x: str = "x ",
     ) -> None:
         """Create a Polynomial.
 
@@ -327,66 +325,70 @@ class Polynomial(Generic[R]):
             entations but when defined as above (by providing only their
             coefficients) increasing powers are assumed.
 
-            One can define polynomials in a more Sage-like manner:
+            Alternatively, one can define polynomials in a more Sage-like
+            manner:
 
             >>> x = Polynomial([0, 1])
-            >>> print((3*x**2-3*x-5))
+            >>> print(3*x**2-3*x-5)
             -5 - 3x + 3x^2
 
-            >>> x = Polynomial([0, 1], increasing = False)
-            >>> print((-3*x**2+3*x-5))
+            For decreasing, from left to right, powers of x:
+
+            >>> x = Polynomial([0, 1], x = 'x-')
+            >>> print(-3*x**2+3*x-5)
             -3x^2 + 3x - 5
+
+            By default, the string representations list monomials with in-
+            creasing degree, so a + isn't necessary; however, if one forg-
+            ets which is the default:
+
+            >>> x = Polynomial([0, 1], x = 'x+')
+            >>> print(3*x**2-3*x-5)
+            -5 - 3x + 3x^2
 
             One can change the letter used for the indeterminant:
 
-            >>> t = Polynomial([0, 1], x='t', increasing = False)
-            >>> print((3*t**2-5))
+            >>> t = Polynomial([0, 1], x='t-')
+            >>> print(3*t**2-5)
             3t^2 - 5
 
             Polynomials with polynomial coeffs:
 
             >>> print(Polynomial([4-5*t, 3*t**3+t**4]))
-            -5t + 4 + t^4 + 3t^3x
-
-            The str representation in the last line above is ambiguous so
-            put x = '(t)' to wrap in parenthesis:
-
-            >>> t = Polynomial([0, 1], x='(t)')
-            >>> print(Polynomial([4-5*t, 3*t**3+t**4]))
-            (4-5t) + (3t^3+t^4)x
+            (-5t+4) + (t^4+3t^3)x
 
             Sometimes square brackets are easier to read:
 
-            >>> t = Polynomial([0, 1], x='[t]', increasing = False)
+            >>> t = Polynomial([0, 1], x='t-')
             >>> p=Polynomial([complex(4)-complex(5,4)*t, complex(3)*t**3])
             >>> print(p)
-            [(-5-4j)t + (4+0j)] + [(3+0j)t^3]x
+            [(-5-4j)t+(4+0j)] + [(3+0j)t^3]x
 
             Note the use of x**0 here:
 
             >>> x = Polynomial([0, 1])
-            >>> t = Polynomial([0, 1], '(t)')
+            >>> t = Polynomial([0, 1], 't')
             >>> print( x**0 * t -  x**2 * (2*t**5))
             (t) + (-2t^5)x^2
 
-            >>> print( (x**0  -  x**2) * (2*t**5 + t))
+            >>> print( (x**0 - x**2) * (2*t**5 + t))
             (t+2t^5) + (-t-2t^5)x^2
 
-            >>> print(x + t)
-            (t) + x
-            >>> print(t + x)
-            (x + t)
-            >>> x + t == t + x
+            >>> print(x+t)
+            t + x
+            >>> print(t+x)
+            x + t
+            >>> x+t == t+x
             False
-            >>> (x + t).x
+            >>> (x+t).x[0]
             'x'
-            >>> (t+x).x
-            '(t)'
+            >>> (t+x).x[0]
+            't'
 
             >>> print(2*x * (t**0 + 2*t))
             (2+4t)x
 
-            >>> p = x**0*(1 + 2*t) + x*(3*t+4*t**2)
+            >>> p = x**0*(1+2*t) + x*(3*t+4*t**2)
             >>> p
             Polynomial((Polynomial((1, 2)), Polynomial((0, 3, 4))))
             >>> print(p)
@@ -397,40 +399,37 @@ class Polynomial(Generic[R]):
             Currently, true multivariant polynomials are not supported.
             For instance, consider
 
-            >>> p1 = (t**0 + 2*t) * x**0 + (3*t+4*t**2) * x; print(p1)
-            (1 + 2 + 3xt + 4xt^2)
-            >>> p2 = x**0 * (t**0 + 2*t) + x * (3*t+4*t**2); print(p2)
+            >>> p1 = (t**0+2*t) * x**0 + (3*t+4*t**2) * x; print(p1)
+            (1) + (2 + 3x)t + (4x)t^2
+            >>> p2 = x**0 * (t**0+2*t) + x * (3*t+4*t**2); print(p2)
             (1+2t) + (3t+4t^2)x
-
-            So, the string representations are not the same; importantly,
-            p1 and p2 are not equal as instances of Polynomial:
-
             >>> p1 == p2
             False
 
-            Likely, p2 is what you want.
+            So, the string representations are not the same; importantly,
+            p1 and p2 are not equal as instances of Polynomial.  Likely,
+            p2 is what you meant.
 
             A final example:
 
-            >>> t = Polynomial([0, 1], '(t)'); x = Polynomial([0, 1])
+            >>> t = Polynomial([0, 1], 't '); x = Polynomial([0, 1])
             >>> p1 = t**2+3*t+1; p2 = x**0 - (2*x**5) + x**2
-            >>> print(p1); print(p2); print(p2 * p1)
-            (1+3t+t^2)
+            >>> print(p1); print(p2); print(p2*p1)
+            1 + 3t + t^2
             1 + x^2 - 2x^5
-            (1+3t+t^2) + (1+3t+t^2)x^2 + (-2-6t-2t^2)x^5
+            (1 + 3t + t^2) + (1 + 3t + t^2)x^2 + (-2 - 6t - 2t^2)x^5
         """
         if len(coeffs) == 0:
             raise ValueError("coeffs cannot be empty")
 
         self.x = x
-        self.increasing = increasing
 
-        if (x[0] == "(" and x[-1] == ")") or (x[0] == "[" and x[-1] == "]"):
-            self.x_unwrapped = x[1:-1]
-            self.spaces = False
-        else:
-            self.x_unwrapped = x
-            self.spaces = spaces
+        #if (x[0] == "(" and x[-1] == ")") or (x[0] == "[" and x[-1] == "]"):
+        #    #self.x_unwrapped = x[1:-1]
+        #    self.spaces = False
+        #else:
+        #    #self.x_unwrapped = x
+        #    self.spaces = spaces
 
         index = len(coeffs) - 1  # index of the last nonzero coeff
         while index > 0 and coeffs[index] == 0:  # remove zeros
@@ -485,15 +484,13 @@ class Polynomial(Generic[R]):
             >>> print(p1 + p2)
             1.5 + 4.0x + 3x^2
         """
-        if isinstance(__x, Polynomial) and self.x_unwrapped == __x.x_unwrapped:
+        if isinstance(__x, Polynomial) and self.x[0] == __x.x[0]:
             selfdeg = self._degree
             __xdeg = __x._degree
             selfcos = self._coeffs
             __xcos = __x._coeffs
             if selfdeg < 0:
-                return self.__class__(
-                    __x._coeffs, self.x, self.spaces, self.increasing
-                )
+                return self.__class__(__x._coeffs, self.x)
             if __xdeg < 0:
                 return self
             mindeg = min([selfdeg, __xdeg])
@@ -502,28 +499,17 @@ class Polynomial(Generic[R]):
                     tuple(selfcos[i] + __xcos[i] for i in range(mindeg + 1))
                     + __xcos[mindeg + 1 :],
                     self.x,
-                    self.spaces,
-                    self.increasing,
                 )
             return self.__class__(
                 tuple(selfcos[i] + __xcos[i] for i in range(mindeg + 1))
                 + selfcos[mindeg + 1 :],
                 self.x,
-                self.spaces,
-                self.increasing,
             )
-        return self.__class__(
-            (self[0] + __x,) + self[1:],
-            self.x,
-            self.spaces,
-            self.increasing,
-        )
+        return self.__class__((self[0] + __x,) + self[1:], self.x)
 
     def __radd__(self: Self, __x: int|R) -> Self:
         """Reverse add."""
-        return self.__class__(
-            (self[0] + __x,) + self[1:], self.x, self.spaces, self.increasing
-        )
+        return self.__class__((self[0] + __x,) + self[1:], self.x)
 
     def __neg__(self: Self) -> Self:
         """Return the negative of a Polynomial.
@@ -534,9 +520,7 @@ class Polynomial(Generic[R]):
             >>> print(-p)
             -2x - 3x^2
         """
-        return self.__class__(
-            [-co for co in self._coeffs], self.x, self.spaces, self.increasing
-        )
+        return self.__class__([-co for co in self._coeffs], self.x)
 
     def __sub__(self: Self, __x: int|R|Polynomial[R]) -> Self:
         """Return the difference of two Polynomials.
@@ -561,12 +545,10 @@ class Polynomial(Generic[R]):
     def __rsub__(self: Self, __x: int|R) -> Self:
         """Reverse subtract."""
         # if isinstance(__x, Ring):
-        # return (- self).__add__(self.__class__((__x,), self.x, self.spaces, self.increasing))
+        # return (- self).__add__(self.__class__((__x,), self.x))
         return self.__class__(
             (-self[0] + __x,) + tuple(-co for co in self._coeffs[1:]),
             self.x,
-            self.spaces,
-            self.increasing,
         )
         # return NotImplemented
 
@@ -595,7 +577,7 @@ class Polynomial(Generic[R]):
             1/3 + 11/30x + 1/10x^2
         """
         if isinstance(__x, Polynomial):
-            if self.x_unwrapped == __x.x_unwrapped:
+            if self.x[0] == __x.x[0]:
 
                 selfdeg = self._degree
                 __xdeg = __x._degree
@@ -603,9 +585,7 @@ class Polynomial(Generic[R]):
                 __xcos = __x._coeffs
 
                 if selfdeg < 0 or __xdeg < 0:
-                    return self.__class__(
-                        (cast(R, 0),), self.x, self.spaces, self.increasing
-                    )
+                    return self.__class__((cast(R, 0),), self.x)
 
                 product: list[
                     R
@@ -639,7 +619,7 @@ class Polynomial(Generic[R]):
                     for j in range(i + 1, lowerdeg + 1):
                         summa_ = shorter[j] * longer[higherdeg + 1 + i - j] + summa_
                     product.append(summa_)
-                return self.__class__(product, self.x, self.spaces, self.increasing)
+                return self.__class__(product, self.x)
 
                 ##Similar to the above algorithm but uses zero padding. Slightly slower,
                 ##in general.
@@ -661,7 +641,7 @@ class Polynomial(Generic[R]):
                 #    for j in range(i+1,n+1): # a zero-padded n degree poly.
                 #        summ += lst1[j] * lst2[n+1+i-j]
                 #    product.append(summ)
-                # return self.__class__(product, self.x, self.spaces, self.increasing)
+                # return self.__class__(product, self.x)
 
             # By here, __x has an indet different than that of self. If __x is not a
             # monic monomial then return NotImplemented. NOTE: Why?
@@ -673,16 +653,11 @@ class Polynomial(Generic[R]):
             #    return NotImplemented
             # return __x.__class__(__x._degree * (0,) + (self,), __x.x)
 
-            # return self.__class__(tuple(self * coef for coef in __x._coeffs), __x.x, __x.spaces, __x.increasing)
+            # return self.__class__(tuple(self * coef for coef in __x._coeffs), __x.x)
         # if isinstance(__x, Ring):
-        # return self._mul(self.__class__((__x,), self.x, self.spaces, self.increasing))
+        # return self._mul(self.__class__((__x,), self.x))
 
-        return self.__class__(
-            tuple(coef * __x for coef in self._coeffs),
-            self.x,
-            self.spaces,
-            self.increasing,
-        )
+        return self.__class__(tuple(coef * __x for coef in self._coeffs), self.x)
 
         # return NotImplemented
 
@@ -690,14 +665,9 @@ class Polynomial(Generic[R]):
         """Reverse multiply."""
 
         # if isinstance(__x, Ring):
-        # return self.__class__((__x,), self.x, self.spaces, self.increasing)._mul(self)
-        # return self._mul(self.__class__((__x,), self.x, self.spaces, self.increasing))
-        return self.__class__(
-            tuple(coef * __x for coef in self._coeffs),
-            self.x,
-            self.spaces,
-            self.increasing,
-        )
+        # return self.__class__((__x,), self.x)._mul(self)
+        # return self._mul(self.__class__((__x,), self.x))
+        return self.__class__(tuple(coef * __x for coef in self._coeffs), self.x)
         # return NotImplemented
 
     # def fftmult(self, __x: Polynomial[R]) -> Polynomial[R]:
@@ -713,7 +683,7 @@ class Polynomial(Generic[R]):
     #    import numpy as np
 
     #    if self._degree is None or __x._degree is None:
-    #        return self.__class__([cast(R, 0)], self.x, self.spaces, self.increasing)
+    #        return self.__class__([cast(R, 0)], self.x)
     #    m = self._degree
     #    n = __x._degree
 
@@ -721,8 +691,7 @@ class Polynomial(Generic[R]):
     #    p1 = np.array(list(self._coeffs) + n * zero)
     #    p2 = np.array(list(__x._coeffs) + m * zero)
     #    return self.__class__(
-    #        (np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real, self.x, self.spaces, self.increasing
-    #    )
+    #        (np.fft.ifft(np.fft.fft(p1) * np.fft.fft(p2))).real, self.x)
 
     # def degree(self) -> int:
     #    """Return the degree of a Polynomial.
@@ -781,17 +750,13 @@ class Polynomial(Generic[R]):
 
         if self._degree < 0:
             if n == 0:
-                return self.__class__(
-                    (0 * self[-1] + 1,), self.x, self.spaces, self.increasing
-                )
+                return self.__class__((0 * self[-1] + 1,), self.x)
             return self
 
         # NOTE: DO YOU WANT THIS OR JUST RECURSIVELY CALL POW
         def recpow(p: Self, n: int) -> Self:
             if n == 0:
-                return self.__class__(
-                    [self[-1] * 0 + 1], self.x, self.spaces, self.increasing
-                )
+                return self.__class__([self[-1] * 0 + 1], self.x)
             factor = recpow(p, n // 2)
             # print("in recpow", factor)
             if n % 2 == 0:
@@ -816,7 +781,7 @@ class Polynomial(Generic[R]):
 
     #    def fftrecpow(p, n):
     #        if n == 0:
-    #            return Polynomial([1], self.x, self.spaces, self.increasing)
+    #            return Polynomial([1], self.x)
     #        else:
     #            factor = fftrecpow(p, n // 2)
     #            # print("in recpow",factor)
@@ -887,7 +852,7 @@ class Polynomial(Generic[R]):
             >>> print(p.__str__(streamline = False))
             1 + 2x + -3x^3
 
-            >>> p = Polynomial([1, 2, 0, -3], increasing = False)
+            >>> p = Polynomial([1, 2, 0, -3], x = 'x-')
             >>> print(p.__str__(streamline = False))
             -3x^3 + 2x + 1
 
@@ -918,35 +883,39 @@ class Polynomial(Generic[R]):
 
             >>> t = Polynomial([0,1], x='t')
             >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
-            1 + t^2 + -9 + tx
+            (1+t^2) + (-9+t)x
 
-            >>> t = Polynomial([0,1], x='(t)')
+            >>> t = Polynomial([0,1], x='t')
             >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
             (1+t^2) + (-9+t)x
             >>> print(Polynomial([t**0,t-9]).__str__(streamline = False))
             (1) + (-9+t)x
 
-            >>> t = Polynomial([0,1], x='t')
+            >>> t = Polynomial([0,1], x='t ')
             >>> print(Polynomial([t**2+1,t-9]))
-            1 + t^2 + -9 + tx
+            (1 + t^2) + (-9 + t)x
 
-            >>> t = Polynomial([0,1], x='(t)', spaces = False)
+            >>> t = Polynomial([0,1], x='t')
             >>> print(Polynomial([t**2+1, 9-t]))
             (1+t^2) + (9-t)x
             >>> print(Polynomial([t**2+1,t-9])**2)
             (1+2t^2+t^4) + (-18+2t-18t^2+2t^3)x + (81-18t+t^2)x^2
         """
-        if self.x == self.x_unwrapped:
-            lp = ""
-            rp = ""
-            var = self.x
-        else:
-            lp = self.x[0]
-            rp = self.x[-1]
-            var = self.x[1:-1]
+        increasing = True
+        var = self.x
+        if var.find(' ') > -1 :
+            spaces = True
+            var = var.replace(' ','')
+        if var.find('-') > -1 :
+            increasing = False
+            var = var.replace('-','')
+        if var.find('+') > -1 :
+            increasing = True
+            var = var.replace('+','')
 
         if self._degree == 0 or self._degree < 0:
-            return lp + str(self[0]) + rp
+            #return lp + str(self[0]) + rp
+            return _wrap(self[0])
         s = ""
 
         if streamline:
@@ -964,11 +933,7 @@ class Polynomial(Generic[R]):
                         zero = cast(OrderedRing, zero_) * cast(OrderedRing, one)
                         for i in range(0, self._degree + 1):
                             if cast(OrderedRing, self[i]) > zero:  # add coefficient
-                                if (
-                                    i != 0
-                                    and self[i] == one
-                                    and s not in ("", "(", "[")
-                                ):
+                                if i!=0 and self[i]==one and s not in ("", "(", "["):
                                     s += " + "
                                 elif i != 0 and s != "" and s != "(" and s != "[":
                                     s += " + " + str(self[i])
@@ -990,10 +955,11 @@ class Polynomial(Generic[R]):
                                 s += var + "^" + str(i)
                             elif i == 1 and self[i] != zero:  # add x
                                 s += var
-                        if not self.increasing:
+                        #if not self.increasing:
+                        if not increasing:
                             s = _reverse(s)
-                        if not self.spaces:
-                            s = "".join(s.split())
+                        #if not self.spaces:
+                        #    s = "".join(s.split())
                     except:
                         zero__ = cast(Field, zero_ * elt)
                         for i in range(0, self._degree + 1):
@@ -1020,27 +986,30 @@ class Polynomial(Generic[R]):
                                     s += str(self[i]) + var
                                 if i < self._degree:
                                     s += " + "
-                        if not self.increasing:
+                        #if not self.increasing:
+                        if not increasing:
                             s = _reverse(s)
                 except:
                     streamline = False
         if not streamline:
             for i in range(0, self._degree + 1):
                 if i == 0 and self[0] != 0:
-                    s += str(self[0])
+                    s += _wrap(self[0])
                     if i < self._degree:
                         s += " + "
                 elif i > 1 and self[i] != 0:  # add x^n
-                    s += str(self[i]) + var + "^" + str(i)
+                    s += _wrap(self[i]) + var + "^" + str(i)
                     if i < self._degree:
                         s += " + "
                 elif i == 1 and self[i] != 0:  # add x
-                    s += str(self[i]) + var
+                    s += _wrap(self[i]) + var
                     if i < self._degree:
                         s += " + "
-            if not self.increasing:
+            #if not self.increasing:
+            if not increasing:
                 s = _reverse(s)
-        return lp + s + rp
+        #return lp + s + rp
+        return s
 
     def __len__(self) -> int:
         """Return number of coefficients of a Polynomial, which is its degree + 1."""
@@ -1073,7 +1042,7 @@ class Polynomial(Generic[R]):
             Is 1 + 2x + 3x^2 == 2 * ( 1/2 + x + 3/2x^2 ) ? True
         """
         if isinstance(__x, Polynomial):
-            return self._coeffs == __x._coeffs and self.__class__ == __x.__class__ and self.x_unwrapped == __x.x_unwrapped
+            return self._coeffs == __x._coeffs and self.__class__ == __x.__class__ and self.x[0] == __x.x[0]
         # NOTE: is this what you (this was the only reason needed @runtime:
         # if isinstance(__x, Ring):
         #    return self._coeffs == self.__class__((cast(R, __x),))._coeffs
@@ -1160,11 +1129,11 @@ class Polynomial(Generic[R]):
             True
         """
         # if not (
-        #    isinstance(__x, Polynomial) and __x.x_unwrapped == self.x_unwrapped
+        #    isinstance(__x, Polynomial) and __x.x[0] == self.x[0]
         # ):
-        #    # raise ValueError(f"{__x.x_unwrapped} != {self.x_unwrapped}")
+        #    # raise ValueError(f"{__x.x[0]} != {self.x[0]}")
         #    return NotImplemented
-        assert __x.x_unwrapped == self.x_unwrapped, "multivar. divmod not implemented"
+        assert __x.x[0] == self.x[0], "multivar. divmod not implemented"
 
         # if not (isinstance(self, FPolynomial) and isinstance(__x, FPolynomial)):
         #    if not (__x[-1] == 1 or __x[-1] == -1):
@@ -1201,17 +1170,13 @@ class Polynomial(Generic[R]):
 
         if self._degree < 0:
             return (
-                self.__class__(
-                    (self._coeffs[0],), self.x, self.spaces, self.increasing
-                ),
-                self.__class__(
-                    (self._coeffs[0],), self.x, self.spaces, self.increasing
-                ),
+                self.__class__((self._coeffs[0],), self.x),
+                self.__class__((self._coeffs[0],), self.x),
             )
 
         # num = copy.copy(self)
-        num = Polynomial(self._coeffs, self.x, self.spaces, self.increasing)
-        quo = Polynomial((self._coeffs[0] * 0,), self.x, self.spaces, self.increasing)
+        num = Polynomial(self._coeffs, self.x)
+        quo = Polynomial((self._coeffs[0] * 0,), self.x)
 
         numdeg = num._degree
 
@@ -1222,24 +1187,14 @@ class Polynomial(Generic[R]):
                     (numdeg - __xdeg) * (num._coeffs[0] * 0,)
                     + (num[-1] * __x[-1],),
                     self.x,
-                    self.spaces,
-                    self.increasing,
                 )
                 num = num - monomial * __x
                 quo = quo + monomial
                 numdeg = num._degree
-            return (
-                self.__class__(quo._coeffs, self.x, self.spaces, self.increasing),
-                self.__class__(num._coeffs, self.x, self.spaces, self.increasing),
-            )
+            return (self.__class__(quo._coeffs, self.x), self.__class__(num._coeffs, self.x))
         return (
-            self.__class__(
-                (self._coeffs[0] * 0,), self.x, self.spaces, self.increasing
-            ),
-            # self
-            self.__class__(
-                (self._coeffs[0] * 0,), self.x, self.spaces, self.increasing
-            ),
+            self.__class__((self._coeffs[0] * 0,), self.x),
+            self.__class__((self._coeffs[0] * 0,), self.x),
         )
 
     def __mod__(self, __x: Polynomial[R]) -> Polynomial[R]:
@@ -1262,7 +1217,7 @@ class Polynomial(Generic[R]):
             >>> print(Polynomial((0,)) % divisor)
             0
         """
-        # if not isinstance(__x, Polynomial) and __x.x_unwrapped == self.x_unwrapped:
+        # if not isinstance(__x, Polynomial) and __x.x[0] == self.x[0]:
         if not isinstance(__x, Polynomial):
             return NotImplemented
 
@@ -1302,11 +1257,10 @@ class Polynomial(Generic[R]):
 
         # if self._degree < 0:
         #    return self.__class__(
-        #        (cast(R, 0),), self.x, self.spaces, self.increasing
-        #    )
+        #        (cast(R, 0),), self.x)
 
         # num = copy.copy(self)
-        num = Polynomial(self._coeffs, self.x, self.spaces, self.increasing)
+        num = Polynomial(self._coeffs, self.x)
         numdeg = num._degree
 
         if numdeg >= __xdeg:
@@ -1317,8 +1271,6 @@ class Polynomial(Generic[R]):
                     (numdeg - __xdeg) * (num._coeffs[0] * 0,)
                     + (num[-1] * __x[-1],),
                     self.x,
-                    self.spaces,
-                    self.increasing,
                 )
                 num = num - monomial * __x
                 numdeg = num._degree
@@ -1404,14 +1356,12 @@ class Polynomial(Generic[R]):
         new_coeffs = []
         for i in range(deg):
             new_coeffs.append((i + 1) * self._coeffs[i + 1])
-        return self.__class__(new_coeffs, self.x, self.spaces, self.increasing)
+        return self.__class__(new_coeffs, self.x)
 
     def apply(self: Self, function: Callable[[R], R]) -> Self:
         """Return copy of self with coefficient mapped according to function."""
 
-        return self.__class__(
-            tuple(map(function, self._coeffs)), self.x, self.spaces, self.increasing
-        )
+        return self.__class__(tuple(map(function, self._coeffs)), self.x)
 
     def truncate(self: Self, degree: int) -> Self:
         """Return copy of self truncated beyond degree.
@@ -1426,9 +1376,7 @@ class Polynomial(Generic[R]):
         if degree < 0:
             raise ValueError(f"truncation degree must be nonnegative, not {degree}")
 
-        return self.__class__(
-            self._coeffs[: degree + 1], self.x, self.spaces, self.increasing
-        )
+        return self.__class__(self._coeffs[: degree + 1], self.x)
 
 
 class FPolynomial(Polynomial[F]):
@@ -1441,13 +1389,7 @@ class FPolynomial(Polynomial[F]):
 
     __slots__ = ()
 
-    def __init__(
-        self,
-        coeffs: Sequence[F],
-        x: str = "x",
-        spaces: bool = True,
-        increasing: bool = True,
-    ) -> None:
+    def __init__(self, coeffs: Sequence[F], x: str = "x",) -> None:
         """Create an polynomial over a field.
 
         The constructor here works the same as that of Polynomial. The difference
@@ -1467,7 +1409,7 @@ class FPolynomial(Polynomial[F]):
             >>> isinstance(p1 // p2, FPolynomial)
             True
         """
-        super().__init__(coeffs, x, spaces, increasing)
+        super().__init__(coeffs, x)
 
     def divmod(self, __x: Polynomial[F]) -> tuple[FPolynomial[F], FPolynomial[F]]:
         """Return the quotient and remainder when dividing self by __x.
@@ -1493,36 +1435,21 @@ class FPolynomial(Polynomial[F]):
 
         if self._degree < 0:
             return (
-                self.__class__((cast(F, 0),), self.x, self.spaces),
-                self.__class__((cast(F, 0),), self.x, self.spaces),
+                self.__class__((cast(F, 0),), self.x),
+                self.__class__((cast(F, 0),), self.x),
             )
 
         lead = __x[-1]
         leadinv = cast(F, 1) / lead
-        self_ = self.__class__(
-            tuple(coef * leadinv for coef in self._coeffs),
-            self.x,
-            self.spaces,
-            self.increasing,
-        )
-        __x_ = __x.__class__(
-            tuple(coef * leadinv for coef in __x._coeffs),
-            __x.x,
-            __x.spaces,
-            __x.increasing,
-        )
+        self_ = self.__class__(tuple(coef*leadinv for coef in self._coeffs), self.x)
+        __x_ = __x.__class__(tuple(coef*leadinv for coef in __x._coeffs), __x.x)
         tup = super(FPolynomial, self_).divmod(__x_)
         # tup = super(FPolynomial, self_ * __x[-1] ** (-1)).divmod(__x * __x[-1] ** (-1))
 
         return (
             cast(FPolynomial[F], tup[0]),
             # cast(FPolynomial[F], tup[1] * __x[-1]),
-            self.__class__(
-                tuple(coef * lead for coef in tup[1]._coeffs),
-                tup[1].x,
-                tup[1].spaces,
-                tup[1].increasing,
-            ),
+            self.__class__(tuple(coef*lead for coef in tup[1]._coeffs), tup[1].x),
         )
 
     def __mod__(self, __x: Polynomial[F]) -> FPolynomial[F]:
@@ -1555,21 +1482,17 @@ class FPolynomial(Polynomial[F]):
             raise ValueError("cannot divide by zero")
 
         if self._degree < 0:
-            return self.__class__((cast(F, 0),), self.x, self.spaces)
+            return self.__class__((cast(F, 0),), self.x)
 
         lead = __x[-1]
         leadinv = cast(F, 1) / lead
         self_ = self.__class__(
             tuple(coef * leadinv for coef in self._coeffs),
             self.x,
-            self.spaces,
-            self.increasing,
         )
         __x_ = __x.__class__(
             tuple(coef * leadinv for coef in __x._coeffs),
             __x.x,
-            __x.spaces,
-            __x.increasing,
         )
         return self.__class__(
             tuple(
@@ -1577,8 +1500,6 @@ class FPolynomial(Polynomial[F]):
                 for coef in super(FPolynomial, self_).__mod__(__x_)._coeffs
             ),
             self.x,
-            self.spaces,
-            self.increasing,
         )
 
     def __repr__(self) -> str:
@@ -1618,6 +1539,34 @@ def _reverse(s: str) -> str:
     if s[:2] == "- ":
         s = "-" + s[2:]
     return s
+
+def _wrap(coeff: object, streamline: bool = True) -> str:
+    """Wraps a polynomial in parenthesis or brackets.
+
+    But does not wrap other objects. Puts brackets if that's more readable.
+
+    Examples:
+
+        >>> from polylib import Polynomial
+        >>> p = Polynomial([1,2,3])
+        >>> print(_wrap(p))
+        (1 + 2x + 3x^2)
+        >>> print(_wrap(Polynomial([1,2,3], 'x')))
+        (1+2x+3x^2)
+        >>> print(_wrap(Polynomial([1,2,3], 't ')))
+        (1 + 2t + 3t^2)
+        >>> print(_wrap(2))
+        2
+        >>> print(_wrap(Polynomial([complex(1), complex(2)])))
+        [1 + (2+0j)x]
+    """
+    if isinstance(coeff, Polynomial) or hasattr(coeff, "x"):
+        s = coeff.__str__(streamline=streamline)
+        s = ''.join(s.split()) if coeff.x.find(' ') < 0 else s
+        return '['+s+']' if str(coeff[0])[0]=="(" or isinstance(coeff[-1], complex) else '('+s+')'
+    else:
+        return(str(coeff))
+
 
 if __name__ == "__main__":
 
