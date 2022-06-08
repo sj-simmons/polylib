@@ -116,7 +116,7 @@ R_ = TypeVar("R_")
 class Ring(Protocol):
     """The methods we require to model a ring."""
 
-    def __add__(self: R_, __x: int|R_, /) -> R_:
+    def __add__(self: R_, __x: int | R_, /) -> R_:
         ...
 
     def __radd__(self: R_, __x: int, /) -> R_:
@@ -125,13 +125,13 @@ class Ring(Protocol):
     def __neg__(self: R_) -> R_:
         ...
 
-    def __sub__(self: R_, __x: int|R_, /) -> R_:
+    def __sub__(self: R_, __x: int | R_, /) -> R_:
         ...
 
     def __rsub__(self: R_, __x: int, /) -> R_:
         ...
 
-    def __mul__(self: R_, __x: int|R_, /) -> R_:
+    def __mul__(self: R_, __x: int | R_, /) -> R_:
         ...
 
     def __rmul__(self: R_, __x: int, /) -> R_:
@@ -169,7 +169,7 @@ class Field(Ring, Protocol):
     # @overload
     # def __truediv__(self: R_, __x: R_, /) -> R_: ...
 
-    def __truediv__(self: R_, __x: R_|int, /) -> R_:
+    def __truediv__(self: R_, __x: R_ | int, /) -> R_:
         ...
 
     # def __rtruediv__(self: R_, __x: int,  /) -> R_: ...
@@ -182,6 +182,7 @@ R = TypeVar("R", bound=Ring)
 F = TypeVar("F", bound=Field)
 
 Self = TypeVar("Self", bound="Polynomial[Any]")
+
 
 class Polynomial(Generic[R]):
 
@@ -247,13 +248,9 @@ class Polynomial(Generic[R]):
 
         3. self._coeffs is a tuple consisting of the coefficients of self.
     """
-    __slots__ = ("_coeffs", "_degree", "x", "x_unwrapped")
+    __slots__ = "_coeffs", "_degree", "x", "x_unwrapped"
 
-    def __init__(
-        self,
-        coeffs: Sequence[R],
-        x: str = "x ",
-    ) -> None:
+    def __init__(self, coeffs: Sequence[R], x: str = "x ") -> None:
         """Create a Polynomial.
 
         The polynomial a_0 + a_1 x + ... + a_n x^n can be instantiated using
@@ -334,7 +331,7 @@ class Polynomial(Generic[R]):
 
             For decreasing, from left to right, powers of x:
 
-            >>> x = Polynomial([0, 1], x = 'x-')
+            >>> x = Polynomial([0, 1], x = 'x -')
             >>> print(-3*x**2+3*x-5)
             -3x^2 + 3x - 5
 
@@ -342,20 +339,26 @@ class Polynomial(Generic[R]):
             creasing degree, so a + isn't necessary; however, if one forg-
             ets which is the default:
 
-            >>> x = Polynomial([0, 1], x = 'x+')
+            >>> x = Polynomial([0, 1], x = 'x +')
             >>> print(3*x**2-3*x-5)
             -5 - 3x + 3x^2
 
+            If one wants a more compact form, without spacing:
+
+            >>> x = Polynomial([0, 1], x = 'x-')
+            >>> print(-3*x**2+3*x-5)
+            -3x^2+3x-5
+
             One can change the letter used for the indeterminant:
 
-            >>> t = Polynomial([0, 1], x='t-')
+            >>> t = Polynomial([0, 1], x='t -')
             >>> print(3*t**2-5)
             3t^2 - 5
 
             Polynomials with polynomial coeffs:
 
             >>> print(Polynomial([4-5*t, 3*t**3+t**4]))
-            (-5t+4) + (t^4+3t^3)x
+            (-5t + 4) + (t^4 + 3t^3)x
 
             Sometimes square brackets are easier to read:
 
@@ -375,9 +378,9 @@ class Polynomial(Generic[R]):
             (t+2t^5) + (-t-2t^5)x^2
 
             >>> print(x+t)
-            t + x
+            (t) + x
             >>> print(t+x)
-            x + t
+            (x) + t
             >>> x+t == t+x
             False
             >>> (x+t).x[0]
@@ -424,10 +427,10 @@ class Polynomial(Generic[R]):
 
         self.x = x
 
-        #if (x[0] == "(" and x[-1] == ")") or (x[0] == "[" and x[-1] == "]"):
+        # if (x[0] == "(" and x[-1] == ")") or (x[0] == "[" and x[-1] == "]"):
         #    #self.x_unwrapped = x[1:-1]
         #    self.spaces = False
-        #else:
+        # else:
         #    #self.x_unwrapped = x
         #    self.spaces = spaces
 
@@ -459,7 +462,7 @@ class Polynomial(Generic[R]):
         self._degree = -1 if coeffs[-1] == 0 else index
         self._coeffs = tuple(coeffs)
 
-    def __add__(self: Self, __x: int|R|Polynomial[R]) -> Self:
+    def __add__(self: Self, __x: int | R | Polynomial[R]) -> Self:
         """Return the sum of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -507,7 +510,7 @@ class Polynomial(Generic[R]):
             )
         return self.__class__((self[0] + __x,) + self[1:], self.x)
 
-    def __radd__(self: Self, __x: int|R) -> Self:
+    def __radd__(self: Self, __x: int | R) -> Self:
         """Reverse add."""
         return self.__class__((self[0] + __x,) + self[1:], self.x)
 
@@ -522,7 +525,7 @@ class Polynomial(Generic[R]):
         """
         return self.__class__([-co for co in self._coeffs], self.x)
 
-    def __sub__(self: Self, __x: int|R|Polynomial[R]) -> Self:
+    def __sub__(self: Self, __x: int | R | Polynomial[R]) -> Self:
         """Return the difference of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -542,7 +545,7 @@ class Polynomial(Generic[R]):
         """
         return self + __x.__neg__()
 
-    def __rsub__(self: Self, __x: int|R) -> Self:
+    def __rsub__(self: Self, __x: int | R) -> Self:
         """Reverse subtract."""
         # if isinstance(__x, Ring):
         # return (- self).__add__(self.__class__((__x,), self.x))
@@ -552,7 +555,7 @@ class Polynomial(Generic[R]):
         )
         # return NotImplemented
 
-    def __mul__(self: Self, __x: int|R|Polynomial[R]) -> Self:
+    def __mul__(self: Self, __x: int | R | Polynomial[R]) -> Self:
         # def __mul__(self, __x: Polynomial[R]) -> Polynomial[R]:
         """Return the product of two Polynomials.
 
@@ -579,12 +582,12 @@ class Polynomial(Generic[R]):
         if isinstance(__x, Polynomial):
             if self.x[0] == __x.x[0]:
 
-                selfdeg = self._degree
+                slfdeg = self._degree
                 __xdeg = __x._degree
-                selfcos = self._coeffs
+                slfcos = self._coeffs
                 __xcos = __x._coeffs
 
-                if selfdeg < 0 or __xdeg < 0:
+                if slfdeg < 0 or __xdeg < 0:
                     return self.__class__((cast(R, 0),), self.x)
 
                 product: list[
@@ -595,15 +598,15 @@ class Polynomial(Generic[R]):
                 # See chapter 17, section 17.2, the section on vector convolutions in the
                 # text Algorithms and Theory of Computation Handbook (1999) for the starting
                 # point for deriving the algorithm below.
-                lowerdeg = min([selfdeg, __xdeg])
-                if selfdeg == lowerdeg:
-                    shorter = selfcos
+                lowerdeg = min([slfdeg, __xdeg])
+                if slfdeg == lowerdeg:
+                    shorter = slfcos
                     longer = __xcos
                     higherdeg = __xdeg
                 else:
                     shorter = __xcos
-                    longer = selfcos
-                    higherdeg = selfdeg
+                    longer = slfcos
+                    higherdeg = slfdeg
                 for i in range(higherdeg + 1):
                     summa = 0 * self[0]
                     if i <= lowerdeg:
@@ -661,7 +664,7 @@ class Polynomial(Generic[R]):
 
         # return NotImplemented
 
-    def __rmul__(self: Self, __x: int|R) -> Self:
+    def __rmul__(self: Self, __x: int | R) -> Self:
         """Reverse multiply."""
 
         # if isinstance(__x, Ring):
@@ -800,7 +803,7 @@ class Polynomial(Generic[R]):
     def __call__(self: Self, x: Self) -> Self:
         ...
 
-    def __call__(self: Self, x: R|Self) -> R|Self:
+    def __call__(self: Self, x: R | Self) -> R | Self:
         """Return the result of evaluating a Polynomial on a number.
 
         Examples:
@@ -831,185 +834,6 @@ class Polynomial(Generic[R]):
         for i in range(self._degree):
             result += x**i * self[i]
         return result
-
-    def __str__(self, streamline: bool = True) -> str:
-        """String coercion.
-
-        Args:
-
-          streamline (bool): True leads to not printing terms that have
-              coefficient zero or one.
-
-        Examples:
-
-            >>> print(Polynomial([1, 2, 0, 0]))
-            1 + 2x
-
-            >>> print(Polynomial([0, 1]))
-            x
-
-            >>> p = Polynomial([1, 2, 0, -3])
-            >>> print(p.__str__(streamline = False))
-            1 + 2x + -3x^3
-
-            >>> p = Polynomial([1, 2, 0, -3], x = 'x-')
-            >>> print(p.__str__(streamline = False))
-            -3x^3 + 2x + 1
-
-            >>> print(Polynomial([0, -1,2, 0, -1,1, -2.3]))
-            -x + 2x^2 - x^4 + x^5 - 2.3x^6
-
-            >>> p = Polynomial([complex(0), complex(-1,2), complex(0,-2.3)])
-            >>> print(p)
-            (-1+2j)x + -2.3jx^2
-
-            >>> p = Polynomial([complex(1), complex(-1,2), complex(0,-2.3)])
-            >>> print(p)
-            1 + (-1+2j)x + -2.3jx^2
-
-            >>> print(Polynomial([complex(1)]))
-            (1+0j)
-
-            >>> print(Polynomial([0, complex(1)]))
-            x
-
-            >>> print(Polynomial([complex(1), complex(-1,2), complex(1)]))
-            1 + (-1+2j)x + x^2
-
-            >>> print(Polynomial([complex(-1,2),complex(-1,2),complex(1)]))
-            (-1+2j) + (-1+2j)x + x^2
-
-            Polynomials over Polynomials
-
-            >>> t = Polynomial([0,1], x='t')
-            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
-            (1+t^2) + (-9+t)x
-
-            >>> t = Polynomial([0,1], x='t')
-            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
-            (1+t^2) + (-9+t)x
-            >>> print(Polynomial([t**0,t-9]).__str__(streamline = False))
-            (1) + (-9+t)x
-
-            >>> t = Polynomial([0,1], x='t ')
-            >>> print(Polynomial([t**2+1,t-9]))
-            (1 + t^2) + (-9 + t)x
-
-            >>> t = Polynomial([0,1], x='t')
-            >>> print(Polynomial([t**2+1, 9-t]))
-            (1+t^2) + (9-t)x
-            >>> print(Polynomial([t**2+1,t-9])**2)
-            (1+2t^2+t^4) + (-18+2t-18t^2+2t^3)x + (81-18t+t^2)x^2
-        """
-        increasing = True
-        var = self.x
-        if var.find(' ') > -1 :
-            spaces = True
-            var = var.replace(' ','')
-        if var.find('-') > -1 :
-            increasing = False
-            var = var.replace('-','')
-        if var.find('+') > -1 :
-            increasing = True
-            var = var.replace('+','')
-
-        if self._degree == 0 or self._degree < 0:
-            #return lp + str(self[0]) + rp
-            return _wrap(self[0])
-        s = ""
-
-        if streamline:
-            elt = self._coeffs[-1]
-            zero_ = 0 * elt
-            if not hasattr(elt, "__truediv__"):
-                streamline = False
-            else:
-                try:
-                    elt_ = elt + 1 if elt == zero_ else elt
-                    one = cast(Field, elt_) / cast(Field, elt_)
-                    try:  # successful if coeffs are OrderedRing
-                        if not TYPE_CHECKING:
-                            _ = one < one
-                        zero = cast(OrderedRing, zero_) * cast(OrderedRing, one)
-                        for i in range(0, self._degree + 1):
-                            if cast(OrderedRing, self[i]) > zero:  # add coefficient
-                                if i!=0 and self[i]==one and s not in ("", "(", "["):
-                                    s += " + "
-                                elif i != 0 and s != "" and s != "(" and s != "[":
-                                    s += " + " + str(self[i])
-                                elif i == 0 or self[i] != one:
-                                    s += str(self[i])
-                            elif cast(OrderedRing, self[i]) < zero:
-                                if self[i] == one.__neg__() and s in ("", "(", "["):
-                                    if i == 0:
-                                        s += "-1"
-                                    else:
-                                        s += "-"
-                                elif self[i] == one.__neg__():
-                                    s += " - "
-                                elif s in ("", "(", "["):
-                                    s += "-" + str(-self[i])
-                                else:
-                                    s += " - " + str(-self[i])
-                            if i > 1 and self[i] != zero:  # add x^n
-                                s += var + "^" + str(i)
-                            elif i == 1 and self[i] != zero:  # add x
-                                s += var
-                        #if not self.increasing:
-                        if not increasing:
-                            s = _reverse(s)
-                        #if not self.spaces:
-                        #    s = "".join(s.split())
-                    except:
-                        zero__ = cast(Field, zero_ * elt)
-                        for i in range(0, self._degree + 1):
-                            if i == 0 and self[0] != zero__:
-                                if self[0] == one:
-                                    s += str(1) + " + "
-                                else:
-                                    s += str(self[0]) + " + "
-                            elif i > 1 and self[i] != zero__:  # add x^n
-                                if self[i] == one:
-                                    s += var + "^" + str(i)
-                                elif self[i] == -one:
-                                    s += "-" + var + "^" + str(i)
-                                else:
-                                    s += str(self[i]) + var + "^" + str(i)
-                                if i < self._degree:
-                                    s += " + "
-                            elif i == 1 and self[i] != zero__:  # add x
-                                if self[i] == one:
-                                    s += var
-                                elif self[i] == -one:
-                                    s += "-" + var + "^" + str(i)
-                                else:
-                                    s += str(self[i]) + var
-                                if i < self._degree:
-                                    s += " + "
-                        #if not self.increasing:
-                        if not increasing:
-                            s = _reverse(s)
-                except:
-                    streamline = False
-        if not streamline:
-            for i in range(0, self._degree + 1):
-                if i == 0 and self[0] != 0:
-                    s += _wrap(self[0])
-                    if i < self._degree:
-                        s += " + "
-                elif i > 1 and self[i] != 0:  # add x^n
-                    s += _wrap(self[i]) + var + "^" + str(i)
-                    if i < self._degree:
-                        s += " + "
-                elif i == 1 and self[i] != 0:  # add x
-                    s += _wrap(self[i]) + var
-                    if i < self._degree:
-                        s += " + "
-            #if not self.increasing:
-            if not increasing:
-                s = _reverse(s)
-        #return lp + s + rp
-        return s
 
     def __len__(self) -> int:
         """Return number of coefficients of a Polynomial, which is its degree + 1."""
@@ -1042,7 +866,11 @@ class Polynomial(Generic[R]):
             Is 1 + 2x + 3x^2 == 2 * ( 1/2 + x + 3/2x^2 ) ? True
         """
         if isinstance(__x, Polynomial):
-            return self._coeffs == __x._coeffs and self.__class__ == __x.__class__ and self.x[0] == __x.x[0]
+            return (
+                self._coeffs == __x._coeffs
+                and self.__class__ == __x.__class__
+                and self.x[0] == __x.x[0]
+            )
         # NOTE: is this what you (this was the only reason needed @runtime:
         # if isinstance(__x, Ring):
         #    return self._coeffs == self.__class__((cast(R, __x),))._coeffs
@@ -1074,7 +902,7 @@ class Polynomial(Generic[R]):
     def __getitem__(self, idx: slice) -> tuple[R, ...]:
         ...
 
-    def __getitem__(self, idx: int|slice) -> R|tuple[R, ...]:
+    def __getitem__(self, idx: int | slice) -> R | tuple[R, ...]:
         """Built-in Indexing.
 
         Return an element tuple self._coeffs.
@@ -1184,14 +1012,16 @@ class Polynomial(Generic[R]):
             while numdeg > -1 and numdeg >= __xdeg:
                 monomial = Polynomial(
                     # monomial = self.__class__(
-                    (numdeg - __xdeg) * (num._coeffs[0] * 0,)
-                    + (num[-1] * __x[-1],),
+                    (numdeg - __xdeg) * (num._coeffs[0] * 0,) + (num[-1] * __x[-1],),
                     self.x,
                 )
                 num = num - monomial * __x
                 quo = quo + monomial
                 numdeg = num._degree
-            return (self.__class__(quo._coeffs, self.x), self.__class__(num._coeffs, self.x))
+            return (
+                self.__class__(quo._coeffs, self.x),
+                self.__class__(num._coeffs, self.x),
+            )
         return (
             self.__class__((self._coeffs[0] * 0,), self.x),
             self.__class__((self._coeffs[0] * 0,), self.x),
@@ -1268,8 +1098,7 @@ class Polynomial(Generic[R]):
                 # monomial = Polynomial(
                 monomial = self.__class__(
                     # (numdeg - __xdeg) * (cast(R, 0),) + (num[-1] * __x[-1],),
-                    (numdeg - __xdeg) * (num._coeffs[0] * 0,)
-                    + (num[-1] * __x[-1],),
+                    (numdeg - __xdeg) * (num._coeffs[0] * 0,) + (num[-1] * __x[-1],),
                     self.x,
                 )
                 num = num - monomial * __x
@@ -1378,6 +1207,190 @@ class Polynomial(Generic[R]):
 
         return self.__class__(self._coeffs[: degree + 1], self.x)
 
+    def __str__(self, streamline: bool = True) -> str:
+        """String coercion.
+
+        Args:
+
+          streamline (bool): True leads to not printing terms that have
+              coefficient zero or one.
+
+        Examples:
+
+            >>> print(Polynomial([1, 2, 0, 0]))
+            1 + 2x
+
+            >>> print(Polynomial([0, 1]))
+            x
+
+            >>> p = Polynomial([1, 2, 0, -3], x = 'x-')
+            >>> print(p)
+            -3x^3+2x+1
+
+            >>> p = Polynomial([1, 2, 0, -3])
+            >>> print(p.__str__(streamline = False))
+            1 + 2x + -3x^3
+
+            >>> print(Polynomial([0, -1,2, 0, -1,1, -2.3]))
+            -x + 2x^2 - x^4 + x^5 - 2.3x^6
+
+            >>> p = Polynomial([complex(0), complex(-1,2), complex(0,-2.3)])
+            >>> print(p)
+            (-1+2j)x + -2.3jx^2
+
+            >>> p = Polynomial([complex(1), complex(-1,2), complex(0,-2.3)])
+            >>> print(p)
+            1 + (-1+2j)x + -2.3jx^2
+
+            >>> print(Polynomial([complex(1)]))
+            (1+0j)
+
+            >>> print(Polynomial([0, complex(1)]))
+            x
+
+            >>> print(Polynomial([complex(1), complex(-1,2), complex(1)]))
+            1 + (-1+2j)x + x^2
+
+            >>> print(Polynomial([complex(-1,2),complex(-1,2),complex(1)]))
+            (-1+2j) + (-1+2j)x + x^2
+
+            Polynomials over Polynomials
+
+            >>> t = Polynomial([0,1], x='t')
+            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
+            (1+t^2) + (-9+t)x
+
+            >>> t = Polynomial([0,1], x='t')
+            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
+            (1+t^2) + (-9+t)x
+            >>> print(Polynomial([t**0,t-9]).__str__(streamline = False))
+            (1) + (-9+t)x
+
+            >>> t = Polynomial([0,1], x='t ')
+            >>> print(Polynomial([t**2+1,t-9]))
+            (1 + t^2) + (-9 + t)x
+
+            >>> t = Polynomial([0,1], x='t')
+            >>> print(Polynomial([t**2+1, 9-t]))
+            (1+t^2) + (9-t)x
+            >>> print(Polynomial([t**2+1,t-9])**2)
+            (1+2t^2+t^4) + (-18+2t-18t^2+2t^3)x + (81-18t+t^2)x^2
+        """
+        increasing = True
+        spaces = False
+        var = self.x
+        if var.find(" ") > -1:
+            spaces = True
+            var = var.replace(" ", "")
+        if var.find("-") > -1:
+            increasing = False
+            var = var.replace("-", "")
+        if var.find("+") > -1:
+            increasing = True
+            var = var.replace("+", "")
+
+        if self._degree == 0 or self._degree < 0:
+            # return lp + str(self[0]) + rp
+            return _wrap(self[0])
+        s = ""
+
+        if streamline:
+            elt = self._coeffs[-1]
+            zero_ = 0 * elt
+            if not hasattr(elt, "__truediv__"):
+                streamline = False
+            else:
+                try:
+                    elt_ = elt + 1 if elt == zero_ else elt
+                    one = cast(Field, elt_) / cast(Field, elt_)
+                    try:  # successful if coeffs are OrderedRing
+                        if not TYPE_CHECKING:
+                            _ = one < one
+                        zero = cast(OrderedRing, zero_) * cast(OrderedRing, one)
+                        for i in range(0, self._degree + 1):
+                            if cast(OrderedRing, self[i]) > zero:  # add coefficient
+                                if (
+                                    i != 0
+                                    and self[i] == one
+                                    and s not in ("", "(", "[")
+                                ):
+                                    s += " + "
+                                elif i != 0 and s != "" and s != "(" and s != "[":
+                                    s += " + " + str(self[i])
+                                elif i == 0 or self[i] != one:
+                                    s += str(self[i])
+                            elif cast(OrderedRing, self[i]) < zero:
+                                if self[i] == one.__neg__() and s in ("", "(", "["):
+                                    if i == 0:
+                                        s += "-1"
+                                    else:
+                                        s += "-"
+                                elif self[i] == one.__neg__():
+                                    s += " - "
+                                elif s in ("", "(", "["):
+                                    s += "-" + str(-self[i])
+                                else:
+                                    s += " - " + str(-self[i])
+                            if i > 1 and self[i] != zero:  # add x^n
+                                s += var + "^" + str(i)
+                            elif i == 1 and self[i] != zero:  # add x
+                                s += var
+                        # if not self.increasing:
+                        if not increasing:
+                            s = _reverse(s)
+                        if not spaces:
+                            s = "".join(s.split())
+                    except:
+                        zero__ = cast(Field, zero_ * elt)
+                        for i in range(0, self._degree + 1):
+                            if i == 0 and self[0] != zero__:
+                                if self[0] == one:
+                                    s += str(1) + " + "
+                                else:  # NOTE:do you want streamline here&below
+                                    s += _wrap(self[0], streamline) + " + "
+                            elif i > 1 and self[i] != zero__:  # add x^n
+                                if self[i] == one:
+                                    s += var + "^" + str(i)
+                                elif self[i] == -one:
+                                    s += "-" + var + "^" + str(i)
+                                else:
+                                    s += _wrap(self[i], streamline) + var + "^" + str(i)
+                                if i < self._degree:
+                                    s += " + "
+                            elif i == 1 and self[i] != zero__:  # add x
+                                if self[i] == one:
+                                    s += var
+                                elif self[i] == -one:
+                                    s += "-" + var + "^" + str(i)
+                                else:
+                                    s += _wrap(self[i], streamline) + var
+                                if i < self._degree:
+                                    s += " + "
+                        # if not self.increasing:
+                        if not increasing:
+                            s = _reverse(s)
+                except:
+                    streamline = False
+        if not streamline:
+            for i in range(0, self._degree + 1):
+                if i == 0 and self[0] != 0:
+                    s += _wrap(self[0])
+                    if i < self._degree:
+                        s += " + "
+                elif i > 1 and self[i] != 0:  # add x^n
+                    s += _wrap(self[i]) + var + "^" + str(i)
+                    if i < self._degree:
+                        s += " + "
+                elif i == 1 and self[i] != 0:  # add x
+                    s += _wrap(self[i]) + var
+                    if i < self._degree:
+                        s += " + "
+            # if not self.increasing:
+            if not increasing:
+                s = _reverse(s)
+        # return lp + s + rp
+        return s
+
 
 class FPolynomial(Polynomial[F]):
     """Extends the Polynomial class to polynomials over a field.
@@ -1389,7 +1402,7 @@ class FPolynomial(Polynomial[F]):
 
     __slots__ = ()
 
-    def __init__(self, coeffs: Sequence[F], x: str = "x",) -> None:
+    def __init__(self, coeffs: Sequence[F], x: str = "x ") -> None:
         """Create an polynomial over a field.
 
         The constructor here works the same as that of Polynomial. The difference
@@ -1441,15 +1454,15 @@ class FPolynomial(Polynomial[F]):
 
         lead = __x[-1]
         leadinv = cast(F, 1) / lead
-        self_ = self.__class__(tuple(coef*leadinv for coef in self._coeffs), self.x)
-        __x_ = __x.__class__(tuple(coef*leadinv for coef in __x._coeffs), __x.x)
+        self_ = self.__class__(tuple(coef * leadinv for coef in self._coeffs), self.x)
+        __x_ = __x.__class__(tuple(coef * leadinv for coef in __x._coeffs), __x.x)
         tup = super(FPolynomial, self_).divmod(__x_)
         # tup = super(FPolynomial, self_ * __x[-1] ** (-1)).divmod(__x * __x[-1] ** (-1))
 
         return (
             cast(FPolynomial[F], tup[0]),
             # cast(FPolynomial[F], tup[1] * __x[-1]),
-            self.__class__(tuple(coef*lead for coef in tup[1]._coeffs), tup[1].x),
+            self.__class__(tuple(coef * lead for coef in tup[1]._coeffs), tup[1].x),
         )
 
     def __mod__(self, __x: Polynomial[F]) -> FPolynomial[F]:
@@ -1496,8 +1509,7 @@ class FPolynomial(Polynomial[F]):
         )
         return self.__class__(
             tuple(
-                coef * lead
-                for coef in super(FPolynomial, self_).__mod__(__x_)._coeffs
+                coef * lead for coef in super(FPolynomial, self_).__mod__(__x_)._coeffs
             ),
             self.x,
         )
@@ -1540,33 +1552,20 @@ def _reverse(s: str) -> str:
         s = "-" + s[2:]
     return s
 
+
 def _wrap(coeff: object, streamline: bool = True) -> str:
-    """Wraps a polynomial in parenthesis or brackets.
+    """Wraps a polynomial in parenthesis or brackets."""
 
-    But does not wrap other objects. Puts brackets if that's more readable.
-
-    Examples:
-
-        >>> from polylib import Polynomial
-        >>> p = Polynomial([1,2,3])
-        >>> print(_wrap(p))
-        (1 + 2x + 3x^2)
-        >>> print(_wrap(Polynomial([1,2,3], 'x')))
-        (1+2x+3x^2)
-        >>> print(_wrap(Polynomial([1,2,3], 't ')))
-        (1 + 2t + 3t^2)
-        >>> print(_wrap(2))
-        2
-        >>> print(_wrap(Polynomial([complex(1), complex(2)])))
-        [1 + (2+0j)x]
-    """
-    if isinstance(coeff, Polynomial) or hasattr(coeff, "x"):
-        s = coeff.__str__(streamline=streamline)
-        s = ''.join(s.split()) if coeff.x.find(' ') < 0 else s
-        return '['+s+']' if str(coeff[0])[0]=="(" or isinstance(coeff[-1], complex) else '('+s+')'
+    if isinstance(coeff, Polynomial):
+        s = coeff.__str__(streamline)
+        s = "".join(s.split()) if coeff.x.find(" ") < 0 else s
+        return (
+            "[" + s + "]"
+            if str(coeff[0])[0] == "(" or isinstance(coeff[-1], complex)
+            else "(" + s + ")"
+        )
     else:
-        return(str(coeff))
-
+        return str(coeff)
 
 if __name__ == "__main__":
 
