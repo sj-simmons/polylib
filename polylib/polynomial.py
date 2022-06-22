@@ -80,6 +80,8 @@ from typing import (
 )
 import re
 import sys
+import math
+import fractions
 
 if sys.version_info >= (3, 8):
     from typing import Protocol
@@ -1207,7 +1209,7 @@ class Polynomial(Generic[R]):
 
         return type(self)(self._coeffs[: degree + 1], self.x)
 
-    #def __str__(self, streamline: bool = True) -> str:
+    # def __str__(self, streamline: bool = True) -> str:
     def __str__(self) -> str:
         """String coercion.
 
@@ -1567,6 +1569,40 @@ def _wrap(coeff: object) -> str:
         )
     else:
         return str(coeff)
+
+
+def bernoulli(n: int) -> Polynomial[fractions.Fraction]:
+    """
+    Return the generating series x/(1-e^(-x)) modulo (x^(n+1)).
+
+    One has: Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
+
+    Interactively, e.g.,
+
+    >>> print(bernoulli(10))
+    1 + 1/2x + 1/12x^2 - 1/720x^4 + 1/30240x^6 - 1/1209600x^8 + 1/47900160x^10
+
+    The corresponding Bernoulli numbers:
+
+    >>> for i,x in enumerate(bernoulli(10)):
+    ...    print("B_"+str(i)+" =",(-1)**i*math.factorial(i)*x,end=', ')
+    ...    # doctest: +ELLIPSIS
+    B_0 = 1, B_1 = -1/2, B_2 = 1/6, ...
+    """
+    # generate n terms of the series p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
+    p_ = [fractions.Fraction(0)]
+    for i in range(2, n + 2):
+        p_.append(fractions.Fraction((-1) ** i, math.factorial(i)))
+    p = Polynomial(p_)
+
+    # q = Polynomial([fractions.Fraction(1)])
+    # for i in range(1, n + 1):
+    #    q = q * p + Polynomial([fractions.Fraction(1)])
+    #    q = Polynomial(q._coeffs[: n + 2])
+
+    # return Polynomial(q._coeffs[: n + 1])
+
+    return Polynomial((fractions.Fraction(1),)) if n == 0 else (1 - p).formalinv(n)
 
 
 if __name__ == "__main__":
