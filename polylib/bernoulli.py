@@ -59,10 +59,10 @@ from polylib.polynomial import Polynomial
 
 
 def berniPoly(n: int) -> Polynomial[Fraction]:
-    """Return the generating series x/(1-e^(-x)) modulo (x^(n+1))
-       as a Polynomial.
+    """
+    Return the generating series x/(1-e^(-x)) modulo (x^(n+1)).
 
-       One has: Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
+    One has: Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
 
     Interactively, e.g.,
 
@@ -75,7 +75,6 @@ def berniPoly(n: int) -> Polynomial[Fraction]:
     ...    print("B_"+str(i)+" =",(-1)**i*math.factorial(i)*x,end=', ')
     ...    # doctest: +ELLIPSIS
     B_0 = 1, B_1 = -1/2, B_2 = 1/6, ...
-
     """
     # generate n terms of the series p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
     p_ = [Fraction(0)]
@@ -94,17 +93,18 @@ def berniPoly(n: int) -> Polynomial[Fraction]:
 
 
 def berni(n: int) -> Fraction:
-    """Return B_n, the nth Bernoulli number.
+    """
+    Return B_n, the nth Bernoulli number.
 
-       B_n is defined by:
+    B_n is defined by: Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
 
-             Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
+    This computes the generating series to the requisite term and
+    is therefore not an efficient way to Bernoulli numbers.
 
-    Interactively, e.g.,
+    Interactively,
 
     >>> print(berni(16))
     -3617/510
-
     """
     assert n >= 0
     q = berniPoly(n)

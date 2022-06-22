@@ -463,7 +463,7 @@ class Polynomial(Generic[R]):
         self._degree = -1 if coeffs[-1] == 0 else index
         self._coeffs = tuple(coeffs)
 
-    def __add__(self: Self, __x: int | R | Polynomial[R]) -> Self:
+    def __add__(self: Self, __x: int | R | Self) -> Self:
         """Return the sum of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -526,7 +526,7 @@ class Polynomial(Generic[R]):
         """
         return type(self)([-co for co in self._coeffs], self.x)
 
-    def __sub__(self: Self, __x: int | R | Polynomial[R]) -> Self:
+    def __sub__(self: Self, __x: int | R | Self) -> Self:
         """Return the difference of two Polynomials.
 
         Coerces constants into constant Polynomials.
@@ -556,7 +556,7 @@ class Polynomial(Generic[R]):
         )
         # return NotImplemented
 
-    def __mul__(self: Self, __x: int | R | Polynomial[R]) -> Self:
+    def __mul__(self: Self, __x: int | R | Self) -> Self:
         # def __mul__(self, __x: Polynomial[R]) -> Polynomial[R]:
         """Return the product of two Polynomials.
 
@@ -591,10 +591,9 @@ class Polynomial(Generic[R]):
                 if slfdeg < 0 or __xdeg < 0:
                     return type(self)((cast(R, 0),), self.x)
 
-                product: list[
-                    R
-                ] = []  # NOTE: try initializing this to the the right size
-                # and refactoring for a speed increase
+                # NOTE: try initializing this to the right size and refactoring for a
+                # speed increase. UPDATE: Doing so does not increase speed.
+                product: list[R] = []
 
                 # See chapter 17, section 17.2, the section on vector convolutions in the
                 # text Algorithms and Theory of Computation Handbook (1999) for the starting
@@ -1208,7 +1207,8 @@ class Polynomial(Generic[R]):
 
         return type(self)(self._coeffs[: degree + 1], self.x)
 
-    def __str__(self, streamline: bool = True) -> str:
+    #def __str__(self, streamline: bool = True) -> str:
+    def __str__(self) -> str:
         """String coercion.
 
         Args:
@@ -1227,10 +1227,6 @@ class Polynomial(Generic[R]):
             >>> p = Polynomial([1, 2, 0, -3], x = 'x-')
             >>> print(p)
             -3x^3+2x+1
-
-            >>> p = Polynomial([1, 2, 0, -3])
-            >>> print(p.__str__(streamline = False))
-            1 + 2x + -3x^3
 
             >>> print(Polynomial([0, -1,2, 0, -1,1, -2.3]))
             -x + 2x^2 - x^4 + x^5 - 2.3x^6
@@ -1258,13 +1254,13 @@ class Polynomial(Generic[R]):
             Polynomials over Polynomials
 
             >>> t = Polynomial([0,1], x='t')
-            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
+            >>> print(Polynomial([t**2+1,t-9]))
             (1+t^2) + (-9+t)x
 
             >>> t = Polynomial([0,1], x='t')
-            >>> print(Polynomial([t**2+1,t-9]).__str__(streamline = False))
+            >>> print(Polynomial([t**2+1,t-9]))
             (1+t^2) + (-9+t)x
-            >>> print(Polynomial([t**0,t-9]).__str__(streamline = False))
+            >>> print(Polynomial([t**0,t-9]))
             (1) + (-9+t)x
 
             >>> t = Polynomial([0,1], x='t ')
@@ -1277,6 +1273,7 @@ class Polynomial(Generic[R]):
             >>> print(Polynomial([t**2+1,t-9])**2)
             (1+2t^2+t^4) + (-18+2t-18t^2+2t^3)x + (81-18t+t^2)x^2
         """
+        streamline = True
         increasing = True
         spaces = False
         var = self.x
@@ -1286,7 +1283,7 @@ class Polynomial(Generic[R]):
             increasing = False
         if var.find("+") > -1:
             increasing = True
-        var = re.sub(' +|-+|\\++', '', var)
+        var = re.sub(" +|-+|\\++", "", var)
 
         if self._degree == 0 or self._degree < 0:
             # return lp + str(self[0]) + rp
@@ -1346,14 +1343,16 @@ class Polynomial(Generic[R]):
                                 if self[0] == one:
                                     s += str(1) + " + "
                                 else:  # NOTE:do you want streamline here&below
-                                    s += _wrap(self[0], streamline) + " + "
+                                    # s += _wrap(self[0], streamline) + " + "
+                                    s += _wrap(self[0]) + " + "
                             elif i > 1 and self[i] != zero__:  # add x^n
                                 if self[i] == one:
                                     s += var + "^" + str(i)
                                 elif self[i] == -one:
                                     s += "-" + var + "^" + str(i)
                                 else:
-                                    s += _wrap(self[i], streamline) + var + "^" + str(i)
+                                    # s += _wrap(self[i], streamline) + var + "^" + str(i)
+                                    s += _wrap(self[i]) + var + "^" + str(i)
                                 if i < self._degree:
                                     s += " + "
                             elif i == 1 and self[i] != zero__:  # add x
@@ -1362,7 +1361,8 @@ class Polynomial(Generic[R]):
                                 elif self[i] == -one:
                                     s += "-" + var + "^" + str(i)
                                 else:
-                                    s += _wrap(self[i], streamline) + var
+                                    # s += _wrap(self[i], streamline) + var
+                                    s += _wrap(self[i]) + var
                                 if i < self._degree:
                                     s += " + "
                         # if not self.increasing:
@@ -1552,11 +1552,13 @@ def _reverse(s: str) -> str:
     return s
 
 
-def _wrap(coeff: object, streamline: bool = True) -> str:
+# def _wrap(coeff: object, streamline: bool = True) -> str:
+def _wrap(coeff: object) -> str:
     """Wraps a polynomial in parenthesis or brackets."""
 
     if isinstance(coeff, Polynomial):
-        s = coeff.__str__(streamline)
+        # s = coeff.__str__(streamline)
+        s = str(coeff)
         s = "".join(s.split()) if coeff.x.find(" ") < 0 else s
         return (
             "[" + s + "]"
@@ -1565,6 +1567,7 @@ def _wrap(coeff: object, streamline: bool = True) -> str:
         )
     else:
         return str(coeff)
+
 
 if __name__ == "__main__":
 
