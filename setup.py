@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from mypyc.build import mypycify
+#from mypyc.build import mypycify
 
 def readme():
   with open('README.rst', 'r') as fh:
@@ -14,17 +14,17 @@ setup(
   },
   name='polylib',
   url='https://github.com/sj-simmons/polylib',
-  download_url='https://github.com/sj-simmons/polylib/archive/v0.3.tar.gz',
+  download_url='https://github.com/sj-simmons/polylib/archive/v0.3.1.tar.gz',
   author='Scott Simmons',
   author_email='ssimmons@drury.edu',
   packages=find_packages(),
-  ext_modules=mypycify([
-      'polylib/polynomials.py',
-      #'polylib/bernoulli.py',
-      ]),
-  python_requires='>=3.6',
-  install_requires=[],
-  version="0.3",
+  #ext_modules=mypycify([
+  #    'polylib/polynomials.py',
+  #    #'polylib/bernoulli.py',
+  #    ]),
+  python_requires='>=3.8',
+  install_requires=['numlib'],
+  version="0.3.1",
   license='Apache 2.0',
   description='a library for working with polynomials',
   long_description=readme(),
@@ -35,10 +35,10 @@ setup(
       'Development Status :: 4 - Beta',
       'Intended Audience :: Science/Research',
       'Intended Audience :: Education',
-      'Programming Language :: Python :: 3.6',
-      'Programming Language :: Python :: 3.7',
       'Programming Language :: Python :: 3.8',
       'Programming Language :: Python :: 3.9',
+      'Programming Language :: Python :: 3.10',
+      'Programming Language :: Python :: 3.11',
       'Topic :: Scientific/Engineering',
       'Topic :: Scientific/Engineering :: Mathematics',
       'License :: OSI Approved :: Apache Software License'

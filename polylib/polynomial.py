@@ -87,7 +87,7 @@ else:
     from typing_extensions import Protocol
 
 __author__ = "Scott Simmons"
-__version__ = "0.3"
+__version__ = "0.3.1"
 __status__ = "Development"
 __date__ = "01/27/24"
 __copyright__ = """

@@ -7,6 +7,9 @@ Pure Python polynomials over a ring or over a field.
 Installation
 ============
 
+First, install `numlib <https://pypi.org/project/numlib/>`_, then install polylib
+with
+
 .. code-block::
 
     pip3 install polylib --user
@@ -27,7 +30,7 @@ To upgrade to the latest version:
 Notes
 -----
 
-If `numpy <https://pypi.org/project/numpy/>`_ is available, then one
+If `numpy <https://pypi.org/project/numpy/>`_ is installed, then one
 can optionally multiply certain polynomials using numpy's fft implementation;
 however, this is not essential and numpy need not be installed.
 
