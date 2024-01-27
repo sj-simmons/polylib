@@ -80,24 +80,18 @@ from typing import (
 )
 import re
 import sys
-import math
-import fractions
 
 if sys.version_info >= (3, 8):
     from typing import Protocol
 else:
     from typing_extensions import Protocol
-# try:
-#    from typing import runtime_checkable as runtime
-# except:
-#    from typing_extensions import runtime
 
 __author__ = "Scott Simmons"
-__version__ = "0.2"
+__version__ = "0.3"
 __status__ = "Development"
-__date__ = "03/25/22"
+__date__ = "01/27/24"
 __copyright__ = """
-  Copyright 2014-2022 Scott Simmons
+  Copyright 2014-2024 Scott Simmons
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -1305,27 +1299,23 @@ class Polynomial(Generic[R]):
                         if not TYPE_CHECKING:
                             _ = one < one
                         zero = cast(OrderedRing, zero_) * cast(OrderedRing, one)
-                        for i in range(0, self._degree + 1):
+                        for i in range(self._degree + 1):
                             if cast(OrderedRing, self[i]) > zero:  # add coefficient
-                                if (
-                                    i != 0
-                                    and self[i] == one
-                                    and s not in ("", "(", "[")
-                                ):
+                                if i != 0 and self[i] == one and s != "":
                                     s += " + "
-                                elif i != 0 and s != "" and s != "(" and s != "[":
+                                elif i != 0 and s != "":
                                     s += " + " + str(self[i])
                                 elif i == 0 or self[i] != one:
                                     s += str(self[i])
                             elif cast(OrderedRing, self[i]) < zero:
-                                if self[i] == one.__neg__() and s in ("", "(", "["):
+                                if self[i] == one.__neg__() and s == "":
                                     if i == 0:
                                         s += "-1"
                                     else:
                                         s += "-"
                                 elif self[i] == one.__neg__():
                                     s += " - "
-                                elif s in ("", "(", "["):
+                                elif s == "":
                                     s += "-" + str(-self[i])
                                 else:
                                     s += " - " + str(-self[i])
@@ -1340,7 +1330,7 @@ class Polynomial(Generic[R]):
                             s = "".join(s.split())
                     except:
                         zero__ = cast(Field, zero_ * elt)
-                        for i in range(0, self._degree + 1):
+                        for i in range(self._degree + 1):
                             if i == 0 and self[0] != zero__:
                                 if self[0] == one:
                                     s += str(1) + " + "
@@ -1373,7 +1363,7 @@ class Polynomial(Generic[R]):
                 except:
                     streamline = False
         if not streamline:
-            for i in range(0, self._degree + 1):
+            for i in range(self._degree + 1):
                 if i == 0 and self[0] != 0:
                     s += _wrap(self[0])
                     if i < self._degree:
@@ -1569,40 +1559,6 @@ def _wrap(coeff: object) -> str:
         )
     else:
         return str(coeff)
-
-
-def bernoulli(n: int) -> Polynomial[fractions.Fraction]:
-    """
-    Return the generating series x/(1-e^(-x)) modulo (x^(n+1)).
-
-    One has: Sum_{i=0} B_n (-x)^n/n! = x/(1-e^(-x)).
-
-    Interactively, e.g.,
-
-    >>> print(bernoulli(10))
-    1 + 1/2x + 1/12x^2 - 1/720x^4 + 1/30240x^6 - 1/1209600x^8 + 1/47900160x^10
-
-    The corresponding Bernoulli numbers:
-
-    >>> for i,x in enumerate(bernoulli(10)):
-    ...    print("B_"+str(i)+" =",(-1)**i*math.factorial(i)*x,end=', ')
-    ...    # doctest: +ELLIPSIS
-    B_0 = 1, B_1 = -1/2, B_2 = 1/6, ...
-    """
-    # generate n terms of the series p(x) satisfying x/(1-e^(-x)) = 1/(1-p(x))
-    p_ = [fractions.Fraction(0)]
-    for i in range(2, n + 2):
-        p_.append(fractions.Fraction((-1) ** i, math.factorial(i)))
-    p = Polynomial(p_)
-
-    # q = Polynomial([fractions.Fraction(1)])
-    # for i in range(1, n + 1):
-    #    q = q * p + Polynomial([fractions.Fraction(1)])
-    #    q = Polynomial(q._coeffs[: n + 2])
-
-    # return Polynomial(q._coeffs[: n + 1])
-
-    return Polynomial((fractions.Fraction(1),)) if n == 0 else (1 - p).formalinv(n)
 
 
 if __name__ == "__main__":

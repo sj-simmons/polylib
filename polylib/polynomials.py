@@ -492,15 +492,15 @@ def oddsqfree(n: int) -> IntPoly:
 
     for d in range(1, n+1):
         if n % d == 0:
-            if nl.mu(n//d) == 1:
+            if nl.utils.mu(n//d) == 1:
                 #nums.append(IntPoly((-1,) + (0,)*(d-1) + (1,)))
                 nums.append(IntPoly((1,) + (0,)*(d-1) + (-1,)))
-            elif nl.mu(n//d) == -1:
+            elif nl.utils.mu(n//d) == -1:
                 #dens.append(IntPoly((-1,) + (0,)*(d-1) + (1,)))
                 dens.append(IntPoly((1,) + (0,)*(d-1) + (-1,)))
 
     prod = IntPoly((1,))
-    phi_ = nl.phi(n)
+    phi_ = nl.utils.phi(n)
     half = phi_//2 + 1
     for num, den in zip(nums, dens):
         prod = IntPoly((prod * IntPoly((num * den.formalinv(phi_)).cos[:half])).cos[:half])
@@ -538,9 +538,9 @@ def cyclotomic(n: int) -> IntPoly:
     if n == 2:
         return IntPoly((1, 1))
 
-    for p, e in nl.factor2(n):
+    for p, e in nl.utils.factor2(n):
         if e > 1:
-            newcos = (1,)
+            newcos: tuple[()]|tuple[int,...] = (1,)
             for co in cyclotomic(n//p).cos[1:]:
                 newcos += (0,)*(p-1) + (co,)
             return IntPoly(newcos)

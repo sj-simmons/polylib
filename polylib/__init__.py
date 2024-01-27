@@ -1,12 +1,12 @@
 from .polynomial import Polynomial, FPolynomial, Field, Ring, OrderedRing
-from .utils import cyclotomic
+#from .polynomials import cyclotomic, bernoulli
 
 __author__ = 'Scott Simmons'
-__version__ = "0.2"
+__version__ = "0.3"
 __status__ = "Development"
-__date__ = "03/25/22"
+__date__ = "01/27/24"
 __copyright__ = """
-  Copyright 2014-2022 Scott Simmons
+  Copyright 2014-2024 Scott Simmons
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
