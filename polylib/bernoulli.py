@@ -36,7 +36,7 @@ python -m timeit -s "from polylib.bernoulli import berni_num as b" "b(500)"
 """
 
 __author__ = "Scott Simmons"
-__version__ = "0.3"
+__version__ = "0.3.1"
 __status__ = "Development"
 __date__ = "01/27/24"
 __copyright__ = """

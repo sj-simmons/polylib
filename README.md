@@ -32,10 +32,6 @@ From your command line:
 ```shell
 pip install polylib --user
 ```
-or, for the latest dev version:
-```shell
-pip install git+https://github.com/sj-simmons/polylib.git --user
-```
 For older Python installations, **pip** might refer to its Python2 version
 (check this with **pip -V**), so use instead **pip3**.
 

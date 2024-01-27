@@ -27,7 +27,7 @@ To upgrade to the latest version:
 Notes
 -----
 
-If `numpy <https://pypi.org/project/numpy/>`_ is available, then one
+If `numpy <https://pypi.org/project/numpy/>`_ is installed, then one
 can optionally multiply certain polynomials using numpy's fft implementation;
 however, this is not essential and numpy need not be installed.
 
